@@ -244,7 +244,9 @@ int main(int argc, char **argv)
 {
     // currently this method is parsing based and at all dynamic to consider many kinds of files.
     // it would be preferred to have a generic parser... 
-    process_netflix(std::string("../data/netflix.dat")); 
+    Eigen::SparseMatrix<double> X = process_netflix(std::string("data/netflix.dat")); 
+
+    Eigen::JacobiSVD<Eigen::SparseMatrix<double>> svd(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
     std::cout<<"parsing done\n";
     //std::cout<<"total points="<<X.rows()<<"\n";
     
