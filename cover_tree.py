@@ -23,7 +23,7 @@ def insert(p, root, max_scale):
         helper.get_children(p, Q_p_ds, scale)
         min_Q_p_ds = min(Q_p_ds, key=attrgetter('dist'))
         
-        if min_Q_p_ds.dist == 0:
+        if min_Q_p_ds.dist == 0.0:
             return None
         elif min_Q_p_ds.dist > math.pow(const.base, scale):
             break;
@@ -47,10 +47,22 @@ def insert(p, root, max_scale):
         if new_child not in parent.children[parent_scale]:
             parent.children[parent_scale].append(new_child)
     except KeyError:
-            parent.children[parent_scale] = [new_child]
+        parent.children[parent_scale] = [new_child]
 
     root.min_scale = min(root.min_scale, parent_scale - 1)
-                
+
+def knn(k, p, root):
+    Q_p_ds = [helper.ds_node(root, helper.distance(root.point, p))]
+
+    for scale in reversed(xrange(root.min_scale, root.max_scale + 1)):
+        helper.get_children(p, Q_p_ds, scale)
+        Q_p_ds = sorted(Q_p_ds, key=attrgetter('dist'))
+        d_p_Q_k = Q_p_ds[k-1].dist
+
+        Q_p_ds = [elem for elem in Q_p_ds if elem.dist <= d_p_Q_k + const.base**scale]
+
+    return sorted(Q_p_ds, key=attrgetter('dist'))[:k]
+
 
 def create_cover_tree(X):
     dist = ss.csr_matrix(X[1:,:])
@@ -67,12 +79,26 @@ def create_cover_tree(X):
     for i in xrange(1, X.shape[0]):
         insert(X[i], root, root.max_scale)
     debug('insertion done')
+    return root    
+
+def dfs(elem, count=0):
+    if not elem:
+        return None
+    else:
+        for key, value in elem.children.iteritems():
+            print '-'*count, key
+            for n in value:
+                dfs(n, count+1)
 
 def init(fname):
     X = parsers.netflix(fname)[:1000,:]
     debug('loaded input')
-    create_cover_tree(X)
-    max_dist = 0
+    root = create_cover_tree(X[:200,:])
+    #dfs(root)
+    #print knn(1, X[201,:], root)[0].node.point
+    #print '***'
+    3print X[201,:]
+
 
 if __name__ == "__main__":
     init(sys.argv[1])
