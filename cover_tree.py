@@ -2,15 +2,15 @@
 
 # py libraries
 from __future__ import  division
-import sys
-import math
+import sys, math
+from optparse import OptionParser
 from operator import attrgetter
 import random
 import numpy as np
 import scipy.sparse as ss
 
 # user-defined libs
-import parsers
+import input_parsers
 import cover_tree_helper as helper
 from cover_tree_helper import debug
 import const
@@ -90,17 +90,30 @@ def dfs(elem, count=0):
             for n in value:
                 dfs(n, count+1)
 
-def init(fname):
-    X = parsers.netflix(fname)[:1000,:]
-    debug('loaded input')
-    root = create_cover_tree(X[:200,:])
-    #dfs(root)
-    #print knn(1, X[201,:], root)[0].node.point
-    #print '***'
-    3print X[201,:]
-
-
+def init():
+    parser = OptionParser()
+    parser.add_option("-i", "--input", dest="ifile", help="input file")
+    parser.add_option("-t", "--train", dest="tfile", help="train file")
+    parser.add_option("-n", "--netflix", dest="netflix", help="run with netflix data", action='store_true')
+    parser.add_option("-s", "--stackex", dest="stackex", help="run with stackexchange data", action='store_true')
+    parser.add_option("-g", "--generic", dest="generic", help="run with generic", action='store_true')
+    (options, args) = parser.parse_args()
+    if options.netflix:
+        debug('running with netflix...')
+        X = input_parsers.netflix(options.ifile)[:1000,:]
+        debug('loaded input')
+        root = create_cover_tree(X[:200,:])
+        #T = input_parsers.netflix(options.tfile)
+        #for row in T:
+        #    knn(1, ...
+        dfs(root)
+    elif options.stackex:
+        debug('running with stackoverflow...')
+    elif options.generic:
+        debug('running with generic data...')
+    else:
+        debug('data format not specified')
 if __name__ == "__main__":
-    init(sys.argv[1])
+    init()
 
         
