@@ -7,6 +7,7 @@ References
 
 [1] Alina Beygelzimer, Sham Kakade, and John Langford. Cover trees for nearest neighbor. In Proceedings of the
 23rd international conference on Machine learning, pages 97–104. ACM, 2006.
+
 [2] Mayur Datar, Nicole Immorlica, Piotr Indyk, and Vahab S Mirrokni. Locality-sensitive hashing scheme based
 on p-stable distributions. In Proceedings of the twentieth annual symposium on Computational geometry, pages
 253–262. ACM, 2004.
