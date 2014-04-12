@@ -14,6 +14,7 @@ import input_parsers
 import cover_tree_helper as helper
 from cover_tree_helper import debug
 import const
+from knn_naive import knn_naive
 
 def insert(p, root, max_scale):
     scale = max_scale
@@ -98,19 +99,27 @@ def init():
     parser.add_option("-s", "--stackex", dest="stackex", help="run with stackexchange data", action='store_true')
     parser.add_option("-g", "--generic", dest="generic", help="run with generic", action='store_true')
     (options, args) = parser.parse_args()
+
+    # netflix block #
     if options.netflix:
         debug('running with netflix...')
         X = input_parsers.netflix(options.ifile)[:1000,:]
         debug('loaded input')
-        root = create_cover_tree(X[:200,:])
+        #root = create_cover_tree(X[:200,:])
         #T = input_parsers.netflix(options.tfile)
         #for row in T:
         #    knn(1, ...
-        dfs(root)
+        #dfs(root)
+        knn_naive(2, X[201,:], X[:100,:])
+
+    # stackoverflow block #
     elif options.stackex:
         debug('running with stackoverflow...')
+
+    # generic block #
     elif options.generic:
         debug('running with generic data...')
+
     else:
         debug('data format not specified')
 if __name__ == "__main__":
