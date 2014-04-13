@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# py libraries
+# standard libraries
 from __future__ import  division
 import sys, math
 from optparse import OptionParser
@@ -68,7 +68,9 @@ def knn(k, p, root):
 def create_cover_tree(X):
     dist = ss.csr_matrix(X[1:,:])
     # make copies of the first vector s.t. sparse matrix substraction. Need to find a better way...
-    stacked_x = ss.vstack([X[0] for n in range(dist.get_shape()[0])])
+    stacked_x = ss.csr_matrix((np.tile(p.data, rows), np.tile(p.indices, rows),
+                               np.arange(0, rows*p.nnz + 1, p.nnz)), shape=X.shape)
+    #stacked_x = ss.vstack([X[0] for n in range(dist.get_shape()[0])])
     dist = dist - stacked_x
     dist = np.sqrt(dist.multiply(dist).sum(1))
 

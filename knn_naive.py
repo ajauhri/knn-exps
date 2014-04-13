@@ -6,8 +6,4 @@ def knn_naive(k, p, X):
     dist = X - stacked_p
     dist = np.sqrt(dist.multiply(dist).sum(1))
     result = sorted(dist)[:k]
-    print result
     return result
-
-
-    
