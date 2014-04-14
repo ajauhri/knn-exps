@@ -10,7 +10,7 @@ import numpy as np
 import scipy.sparse as ss
 
 # user-defined libs
-import input_parsers
+from parsers.parsers import netflix
 import cover_tree_helper as helper
 from cover_tree_helper import debug
 import const
@@ -65,7 +65,7 @@ def knn(k, p, root):
     return sorted(Q_p_ds, key=attrgetter('dist'))[:k]
 
 
-def create_cover_tree(X):
+def create(X):
     dist = ss.csr_matrix(X[1:,:])
     # make copies of the first vector s.t. sparse matrix substraction. Need to find a better way...
     stacked_x = ss.csr_matrix((np.tile(p.data, rows), np.tile(p.indices, rows),
@@ -93,41 +93,3 @@ def dfs(elem, count=0):
             for n in value:
                 dfs(n, count+1)
 
-def init():
-    parser = OptionParser()
-    parser.add_option("-i", "--input", dest="ifile", help="input file")
-    parser.add_option("-t", "--train", dest="tfile", help="train file")
-    parser.add_option("-n", "--netflix", dest="netflix", help="run with netflix data", action='store_true')
-    parser.add_option("-s", "--stackex", dest="stackex", help="run with stackexchange data", action='store_true')
-    parser.add_option("-g", "--generic", dest="generic", help="run with generic", action='store_true')
-    (options, args) = parser.parse_args()
-
-    # netflix block #
-    if options.netflix:
-        debug('running with netflix...')
-        X = input_parsers.netflix(options.ifile)[:1000,:]
-        debug('loaded input')
-        #root = create_cover_tree(X[:200,:])
-        #T = input_parsers.netflix(options.tfile)
-        #for row in T:
-        #    knn(1, ...
-        #dfs(root)
-        knn_naive(2, X[201,:], X[:100,:])
-        debug('done with naive')
-
-
-    # stackoverflow block #
-    elif options.stackex:
-        debug('running with stackoverflow...')
-
-    # generic block #
-    elif options.generic:
-        debug('running with generic data...')
-
-    else:
-        debug('data format not specified')
-
-if __name__ == "__main__":
-    init()
-
-        
