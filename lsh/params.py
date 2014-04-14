@@ -4,7 +4,7 @@ class params:
         self.lsh_funcs = None
         self.w = None
         self.l = None #nHFTuples
-        self.k = None #hgTuplesLength
+        self.k = None #hfTuplesLength
         self.d = None
         self.m = None
         self.success_prob = None

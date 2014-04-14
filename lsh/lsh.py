@@ -7,6 +7,8 @@ import numpy as np
 import const
 from lsh_func import lsh_func
 const.w = 4
+const.two_to_32_minus_1 = 4294967295
+const.prime_default = 4294967291
 
 # SelfTuning.cpp:275
 def compute_p(w, c):
@@ -54,13 +56,18 @@ def compute_ulsh(alg_params, g, reduced_p):
 
     alg_params.computed_ulshs.append(hashes)
 
+def compute_uhf(alg_params):
+
+
 def prepare_point(alg_params, p):
     # you may have time this
     reduced_p = p / alg_params.r # works for sparse matrix!!!
 
     for i in xrange(alg_params.l):
         compute_ulsh(alg_params, i, reduced_p)
-
+    
+    for i in xrange(alg_params.l):
+        compute_uhf(alg_params)
 
 
 def init_hash_functions(params):
