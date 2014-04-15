@@ -22,50 +22,37 @@ def comute_l(k, success_prob):
     p = compute_p(const.w, 1)
     return math.ceil( math.log(1 - success_prob) / math.log(1 - math.pow(p, k)))
 '''
-    
-def compute_ulsh(alg_params, g, reduced_p):
-    hashes = []
-    for k in xrange(alg_params.k):
-        s = reduced_g.multiply(alg_params.lsh_funcs[g][k].a).sum(1)
-        hashes.append(math.floor((s + alg_params.lsh_funcs[g][k].b) / alg_params.w))
-
-    alg_params.computed_ulshs.append(hashes)
-
 def compute_uhf(alg_params):
 
-
-def prepare_point(alg_params, p):
-    # you may have time this
-    reduced_p = p / alg_params.r # works for sparse matrix!!!
-
-    for i in xrange(alg_params.l):
-        compute_ulsh(alg_params, i, reduced_p)
-    
-    for i in xrange(alg_params.l):
-        compute_uhf(alg_params)
-
 '''
+def compute_uhf_of_ulsh(uhash, ulsh, length):
+# need to do some assertions here
+    compute_product_mod_default_prime(uhash.main_hash_a, ulsh, length)
+    compute_product_mod_default_prime(uhash.control_hash, ulsh, length)
+    compute_product_mod_default_prime(uhash.main_hash_a + length, ulsh, length)
+    compute_product_mod_default_prime(uhash.control_hash + length, ulsh, length)
 
-def init_hash_functions(params):
-    nn = nn_struct(params.k, params.l)
-    for i in xrange(params.l):
-        for j in xrange(params.k):
-            nn.funcs[i][j].a = np.random.normal(0, 1, (1, params.d))
-            nn.funcs[i][j].b = np.random.uniform(0, params.w) 
-    return nn 
+def construct_point(nn, uhash, p):
+    # you have time this
+    reduced_p = p / nn.r 
+
+    for i in xrange(nn.l):
+        lsh_helper.compute_ulsh(nn, i, reduced_p)
+    
+    for i in xrange(nn.l):
+        lsh_helper.compute_uhf_of_ulsh(uhash, np.array(nn.computed_ulshs[i]), nn.k)
+
 
 def init_lsh_with_dataset(params, n, X):
-    # LocalitySensitiveHashing.cpp:216
-    # initiate hash functions
+    # initialize hash functions
     debug("initializing hash functions")
-    nn = init_hash_functions(params)
+    nn = lsh_helper.init_hash_functions(params)
     nn.points = X[:n,:]
-    '''
-    alg_params.n_points = n # not sure about the difference of n_points and points_arr_size
-    alg_params.points = X
+
+    # initialize second level hashing (bucket hashing) 232
+    uhash = lsh_helper.create_ht(1, n, params.k) #1 - for linked lists; 2 - for hybrid chains
     for x in X:
-        prepare_point()
-    '''
+        construct_point(nn, uhash, x)
 
 def determine_rt_coeffs(params, X):
     n = X.shape[0] / 50

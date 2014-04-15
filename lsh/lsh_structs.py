@@ -19,8 +19,24 @@ class nn_struct:
     def __init__(self, k, l):
         self.funcs =  [[lsh_func() for j in xrange(k)] for i in xrange(l)]
         self.points = None
+        self.r = None
+        self.l = None
+        self.k = None
+        self.compute_ulshs = None
+
+
 
 class lsh_func:
     def __init__(self):
         self.a = []
         self.b = 0
+        
+class uh_struct:
+    def __init__(self):
+        self.table_size = None
+        self.buckets = None
+        self.hashed_data_length = None
+        self.points = None
+        self.main_hash_a = None
+        self.control_hash = None
+       
