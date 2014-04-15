@@ -2,6 +2,11 @@ Project Description
 ----
 This is an implementation and a comparitive study of nearest-neighbour algorithms. NN algorithms are relevant for machine learning applications since it is believed that high-dimensoinal datasets have low-dimensional intrinsic structure. Specifically, we shall look at cover trees[1], and locality sensitive hashing[2] on different datasets and perform a comparitive study of their performance. Several datasets like user ratings, user tags on stackoverflow.com, and if possible, image classification will be considered. Moreover, from this study I aim to infer the correlation of a NN algorithm and structure of data via certain metrics of performance.
 
+
+Dependencies
+---
+* [psutil](http://code.google.com/p/psutil/) 
+
 References
 ----
 

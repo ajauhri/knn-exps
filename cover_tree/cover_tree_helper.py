@@ -26,9 +26,6 @@ def distance(p1, p2):
     diff = p1 - p2 
     return np.sqrt(diff.multiply(diff).sum(1))[0,0]
 
-def debug(str):
-    print '***DEBUG: ' + str
-
 # to get all children at a scale and returns a vector with all points at that scale 
 def get_children(p, Qi_p_ds, scale):
     for Qi in Qi_p_ds:
