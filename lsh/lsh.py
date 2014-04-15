@@ -7,8 +7,7 @@ import psutil
 # user defined libs
 import const
 from extras.helper import debug
-from lsh_func import lsh_func
-from alg_params import alg_params
+from lsh_structs import alg_params, lsh_func, nn_struct
 import lsh_helper
 
 # some constants as descibed in the paper
@@ -23,15 +22,6 @@ def comute_l(k, success_prob):
     p = compute_p(const.w, 1)
     return math.ceil( math.log(1 - success_prob) / math.log(1 - math.pow(p, k)))
 '''
-    
-def init_lsh_with_dataset(alg_params, n, X):
-    # initiate hash functions
-    init_hash_functions(alg_params)
-    alg_params.n_points = n # not sure about the difference of n_points and points_arr_size
-    alg_params.points = X
-    for x in X:
-        prepare_point()
-
     
 def compute_ulsh(alg_params, g, reduced_p):
     hashes = []
@@ -54,16 +44,29 @@ def prepare_point(alg_params, p):
     for i in xrange(alg_params.l):
         compute_uhf(alg_params)
 
+'''
 
 def init_hash_functions(params):
-    params.lsh_funcs = [[0 for j in xrange(params.k)] for i in xrange(params.l)]
+    nn = nn_struct(params.k, params.l)
     for i in xrange(params.l):
         for j in xrange(params.k):
-            lsh_funcs[i][j] = lsh_func()
-            lsh_funcs[i][j].a = np.random.normal(0, 1, (1, params.d))
-            lsh_funcs[i][j].b = np.random.unif(0, params.w) 
+            nn.funcs[i][j].a = np.random.normal(0, 1, (1, params.d))
+            nn.funcs[i][j].b = np.random.uniform(0, params.w) 
+    return nn 
 
-'''
+def init_lsh_with_dataset(params, n, X):
+    # LocalitySensitiveHashing.cpp:216
+    # initiate hash functions
+    debug("initializing hash functions")
+    nn = init_hash_functions(params)
+    nn.points = X[:n,:]
+    '''
+    alg_params.n_points = n # not sure about the difference of n_points and points_arr_size
+    alg_params.points = X
+    for x in X:
+        prepare_point()
+    '''
+
 def determine_rt_coeffs(params, X):
     n = X.shape[0] / 50
     if n < 100:
@@ -75,9 +78,9 @@ def determine_rt_coeffs(params, X):
     params.t = n
 
     params.m = lsh_helper.compute_m(params.k, params.success_pr, params.w) 
-    alg_params.l = params.m * (params.m - 1) / 2
+    params.l = int(params.m * (params.m - 1) / 2)
     
-    #init_lsh_with_dataset(alg_params, n, X)
+    init_lsh_with_dataset(params, n, X) #SelfTuning:202
 
 
 '''
