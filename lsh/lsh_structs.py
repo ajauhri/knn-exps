@@ -22,7 +22,11 @@ class nn_struct:
         self.r = None
         self.l = None
         self.k = None
-        self.compute_ulshs = None
+        self.w = None
+        self.n_hf_tuples = None
+        self.hf_tuples_length = None
+        self.computed_ulshs = []
+        self.computed_hashes_of_ulshs = []
 
 
 
