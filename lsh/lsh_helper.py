@@ -7,6 +7,8 @@ import const
 
 const.max_hash_rnd = 536870912
 const.prime_default = 4294967291
+const.two_to_32_minus_1 = 4294967295
+
 def compute_product_mod_default_prime(a, b, size):
     h = int(np.dot(a[:size], np.transpose(b[:size])))
     h = (h & const.two_to_32_minus_1) + 5 * (h >> 32)
@@ -68,10 +70,11 @@ def compute_ulsh(nn, g, reduced_p):
     for k in xrange(nn.hf_tuples_length):
         s = reduced_p * nn.funcs[g][k].a.transpose()
         hashes.append(math.floor((s + nn.funcs[g][k].b) / nn.w))
-
-    nn.computed_ulshs.append(hashes)
+    return hashes 
 
 def compute_uhf_of_ulsh(uhash, ulsh, length):
+    #print ulsh, uhash.main_hash_a[:length], '*', np.dot(ulsh[:length], uhash.main_hash_a[:length])
+
     assert(length * 2 == uhash.hashed_data_length)
     arr = [] 
     arr.append(compute_product_mod_default_prime(uhash.main_hash_a, ulsh, length))
@@ -85,7 +88,9 @@ def add_bucket_entry(uhash, pieces, first_bucket_vector, second_bucket_vector, p
     h_index = first_bucket_vector[0] + second_bucket_vector[0 + 2]
     if h_index >= const.prime_default:
         h_index -= const.prime_default
+    h_index = h_index % uhash.table_size
+    
     control = first_bucket_vector[1] + second_bucket_vector[1 + 2]
     if control >= const.prime_default:
         control -= const.prime_default
-    h_index = h_index % uhash.table_size
+    print h_index, control

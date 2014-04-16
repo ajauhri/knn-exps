@@ -15,7 +15,6 @@ import lsh_helper
 const.success_pr = 0.9
 const.w = 4
 const.HYBRID = True
-const.two_to_32_minus_1 = 4294967295
 
 # SelfTuning.cpp:275
 def comute_l(k, success_prob):
@@ -26,12 +25,14 @@ def compute_uhf(alg_params):
 
 '''
 def construct_point(nn, uhash, p):
-    # you have time this
+    # you have to time this
     reduced_p = p / nn.r 
-
-    for i in xrange(nn.n_hf_tuples):
-        lsh_helper.compute_ulsh(nn, i, reduced_p)
     
+    nn.computed_ulshs = []
+    for i in xrange(nn.n_hf_tuples):
+        nn.computed_ulshs.append(lsh_helper.compute_ulsh(nn, i, reduced_p))
+
+    nn.computed_hashes_of_ulshs = []
     for i in xrange(nn.n_hf_tuples):
         nn.computed_hashes_of_ulshs.append(lsh_helper.compute_uhf_of_ulsh(uhash, np.array(nn.computed_ulshs[i]), nn.hf_tuples_length))
 
@@ -46,16 +47,16 @@ def init_lsh_with_dataset(params, n, X):
     count = 0
     computed_hashes_of_ulshs = eval(`[[[0]*4]*X.shape[0]]*nn.l`)
     for i in xrange(X.shape[0]):
-        sys.stdout.write("\rloading hashes for point %d out of %d" % (count,X.shape[0]))
+        #sys.stdout.write("\rloading hashes for point %d out of %d" % (count + 1, X.shape[0]))
         construct_point(nn, uhash, X[i])
         count += 1
-        sys.stdout.flush()
+        #sys.stdout.flush()
+        #print 
         for j in xrange(nn.n_hf_tuples):
             for k in xrange(4):
                 computed_hashes_of_ulshs[j][i][k] = nn.computed_hashes_of_ulshs[j][k]
-                print j,k, computed_hashes_of_ulshs[j][k]
-    
-    print 
+                #print j,k, nn.computed_hashes_of_ulshs[j][k]
+
     for i in xrange(nn.l):
         for j in xrange(X.shape[0]):
             lsh_helper.add_bucket_entry(uhash, 2, computed_hashes_of_ulshs[0][j], computed_hashes_of_ulshs[1][j], j)
@@ -66,13 +67,13 @@ def determine_rt_coeffs(params, X):
         n = X.shape[0] 
     elif n > 10000:
         n = 10000
-     
+
     params.k = 16
     params.t = n
 
     params.m = lsh_helper.compute_m(params.k, params.success_pr, params.w) 
     params.l = int(params.m * (params.m - 1) / 2)
-    
+
     init_lsh_with_dataset(params, n, X[:n,:]) #SelfTuning:202
 
 

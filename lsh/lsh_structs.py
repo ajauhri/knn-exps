@@ -25,10 +25,8 @@ class nn_struct:
         self.w = None
         self.n_hf_tuples = None
         self.hf_tuples_length = None
-        self.computed_ulshs = []
-        self.computed_hashes_of_ulshs = []
-
-
+        self.computed_ulshs = None
+        self.computed_hashes_of_ulshs = None
 
 class lsh_func:
     def __init__(self):
