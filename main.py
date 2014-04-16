@@ -3,7 +3,7 @@
 from optparse import OptionParser
 
 from naive import knn_naive
-from extras.parsers import netflix
+from extras.parsers import netflix, generic
 from extras.helper import debug
 import lsh.lsh as lsh
 def init():
@@ -37,7 +37,10 @@ def init():
 
     # generic block #
     elif options.generic:
-        debug('running with generic data...')
+        debug('running with generic dataset...')
+        X = generic(options.ifile)
+        lsh.compute_opt(X, X[:10,:])
+        debug('input loaded')
 
     else:
         debug('data format not specified')

@@ -53,7 +53,7 @@ def init_lsh_with_dataset(params, n, X):
         for j in xrange(nn.n_hf_tuples):
             for k in xrange(4):
                 computed_hashes_of_ulshs[j][i][k] = nn.computed_hashes_of_ulshs[j][k]
-            print computed_hashes_of_ulshs[j][i]
+                print j,k, computed_hashes_of_ulshs[j][k]
     
     print 
     for i in xrange(nn.l):
