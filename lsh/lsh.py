@@ -47,20 +47,30 @@ def init_lsh_with_dataset(params, n, X):
     count = 0
     computed_hashes_of_ulshs = eval(`[[[0]*4]*X.shape[0]]*nn.l`)
     for i in xrange(X.shape[0]):
-        #sys.stdout.write("\rloading hashes for point %d out of %d" % (count + 1, X.shape[0]))
+        sys.stdout.write("\rloading hashes for point %d out of %d" % (count + 1, X.shape[0]))
         construct_point(nn, uhash, X[i])
         count += 1
-        #sys.stdout.flush()
-        #print 
+        sys.stdout.flush()
         for j in xrange(nn.n_hf_tuples):
             for k in xrange(4):
                 computed_hashes_of_ulshs[j][i][k] = nn.computed_hashes_of_ulshs[j][k]
                 #print j,k, nn.computed_hashes_of_ulshs[j][k]
-
+    print
+    first_u_comp = 0
+    second_u_comp = 1
     for i in xrange(nn.l):
         for j in xrange(X.shape[0]):
-            lsh_helper.add_bucket_entry(uhash, 2, computed_hashes_of_ulshs[0][j], computed_hashes_of_ulshs[1][j], j)
+            lsh_helper.add_bucket_entry(uhash, 2, computed_hashes_of_ulshs[first_u_comp][j], computed_hashes_of_ulshs[second_u_comp][j], j)
 
+        second_u_comp += 1
+        if second_u_comp == nn.n_hf_tuples:
+            first_u_comp += 1
+            second_u_comp = first_u_comp + 1
+       
+        nn.hashed_buckets.append(lsh_helper.create_ht(2, n, nn.k, True, uhash.control_hash, uhash.main_hash_a, uhash))
+
+    return nn
+       
 def determine_rt_coeffs(params, X):
     n = X.shape[0] / 50
     if n < 100:

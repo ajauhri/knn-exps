@@ -1,3 +1,4 @@
+import const
 class alg_params:
     def __init__(self):
         self.r = None
@@ -27,6 +28,7 @@ class nn_struct:
         self.hf_tuples_length = None
         self.computed_ulshs = None
         self.computed_hashes_of_ulshs = None
+        self.hashed_buckets = []
 
 class lsh_func:
     def __init__(self):
@@ -34,11 +36,41 @@ class lsh_func:
         self.b = 0
         
 class uh_struct:
-    def __init__(self):
-        self.table_size = None
-        self.buckets = None
-        self.hashed_data_length = None
-        self.points = None
+    def __init__(self, t, table_size, data_length):
+        self.t = t
+        self.table_size = table_size
+        self.buckets = 0
+        self.points = 0
+        
+        self.data_length = data_length
+        self.chain_sizes = None
+        self.hybrid_chains_storage = None
+        
+        self.ll_hash_table = None 
+        self.hybrid_hash_table = []
+
         self.main_hash_a = None
         self.control_hash = None
-       
+
+class bucket:
+    def __init__(self, control, point_index, next_bucket):
+        self.control_value = control 
+        self.first_entry = bucket_entry(point_index, None) 
+        self.next_bucket_in_chain = next_bucket
+
+class bucket_entry:
+    def __init__(self, point_index, next_entry):
+        self.point_index = point_index 
+        self.next_entry = next_entry 
+
+class hybrid_chain_entry:
+    def __init__(self):
+        self.control_value = None
+        self.point = hybrid_entry()
+
+class hybrid_entry:
+    def __init__(self):
+        self.is_last_bucket = 1
+        self.bucket_length = const.n_bits_for_bucket_length
+        self.is_last_point = 1
+        self.point_index = const.n_bits_per_point_index
