@@ -79,7 +79,7 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
                     last_index_in_storage = overflow_start - 1
 
                     value = overflow_start - (curr_index - 1 + const.max_nonoverflow_points_per_bucket)
-                    for j in xrange(const.n_fields_per_index_of_overflow):
+                    for j in range(const.n_fields_per_index_of_overflow):
                         uhash.hybrid_chains_storage[curr_index + j].point.bucket_length = value & ((1 << const.n_bits_for_bucket_length) - 1)
                         value = value >> const.n_bits_for_bucket_length
                     index_in_storage = index_in_storage + const.max_nonoverflow_points_per_bucket - 1
@@ -111,8 +111,9 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
     return uhash
 
 
-def init_hash_functions(params):
+def init_hash_functions(params, n):
     nn = lsh_structs.nn_struct(int(params.k / 2), int(params.m))
+    nn.n = n
     nn.r = params.r
     nn.l = params.l
     nn.k = params.k
@@ -123,6 +124,8 @@ def init_hash_functions(params):
         for j in xrange(nn.hf_tuples_length):
             nn.funcs[i][j].a = np.random.normal(0, 1, (1, params.d))
             nn.funcs[i][j].b = np.random.uniform(0, params.w) 
+    nn.marked_points = [False for x in range(n)] 
+    nn.marked_points_indices = [None for x in range(n)]
     return nn 
     
 def compute_ulsh(nn, g, reduced_p):
@@ -141,6 +144,19 @@ def compute_uhf_of_ulsh(uhash, ulsh, length):
     arr.append(compute_product_mod_default_prime(uhash.main_hash_a + length, ulsh, length))
     arr.append(compute_product_mod_default_prime(uhash.control_hash + length, ulsh, length))
     return arr
+
+def construct_point(nn, uhash, p):
+    # you have to time this
+    reduced_p = p / nn.r 
+    
+    nn.computed_ulshs = []
+    for i in xrange(nn.n_hf_tuples):
+        nn.computed_ulshs.append(compute_ulsh(nn, i, reduced_p))
+
+    nn.computed_hashes_of_ulshs = []
+    for i in xrange(nn.n_hf_tuples):
+        nn.computed_hashes_of_ulshs.append(compute_uhf_of_ulsh(uhash, np.array(nn.computed_ulshs[i]), nn.hf_tuples_length))
+
 
 def add_bucket_entry(uhash, pieces, first_bucket_vector, second_bucket_vector, point_index):
     #print first_bucket_vector, second_bucket_vector
@@ -169,3 +185,27 @@ def add_bucket_entry(uhash, pieces, first_bucket_vector, second_bucket_vector, p
             b.first_entry.next_entry = bucket_entry
     uhash.points += 1
 
+def get_bucket(uhash, pieces, first_bucket_vector, second_bucket_vector):
+    h_index = first_bucket_vector[0] + second_bucket_vector[0 + 2]
+    if h_index >= const.prime_default:
+        h_index -= const.prime_default
+    assert(h_index < const.prime_default)
+    h_index = h_index % uhash.table_size
+
+    control = first_bucket_vector[1] + second_bucket_vector[1 + 2]
+    if control >= const.prime_default:
+        control -= const.prime_default
+    assert(control < const.prime_default)
+
+    if uhash.t == 2:
+        hybrid_hash_table = uhash.hybrid_hash_table
+        while h_index < len(hybrid_hash_table) - 1:
+            if hybrid_hash_table[h_index].control_value == control:
+                return (h_index + 1)
+            else:
+                h_index += 1
+                if hybrid_hash_table[h_index].point.is_last_bucket:
+                    return None
+                h_index += hybrid_hash_table[h_index].point.bucket_length
+        print h_index
+        return None

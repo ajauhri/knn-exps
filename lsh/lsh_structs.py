@@ -24,11 +24,14 @@ class nn_struct:
         self.l = None
         self.k = None
         self.w = None
+        self.n = None
         self.n_hf_tuples = None
         self.hf_tuples_length = None
         self.computed_ulshs = None
         self.computed_hashes_of_ulshs = None
         self.hashed_buckets = []
+        self.marked_points = None
+        self.marked_points_indices = None
 
 class lsh_func:
     def __init__(self):
