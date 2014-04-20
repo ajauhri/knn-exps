@@ -84,10 +84,11 @@ class hybrid_entry(C.Structure):
                 ("bucket_length", C.c_uint),
                 ("is_last_point", C.c_uint),
                 ("point_index", C.c_uint)]
+    
     def __init__(self, is_last = 1, length = const.n_bits_for_bucket_length, last_point = 1, point_index = const.n_bits_per_point_index):
         super(hybrid_entry, self).__init__(is_last, length, last_point, point_index)
 
-
+    
 class hybrid_chain_entry(C.Union):
     _fields_ = [("control_value", C.c_uint),
                 ("point", hybrid_entry),

@@ -31,7 +31,6 @@ def init_lsh_with_dataset(params, n, X):
 
     # initialize second level hashing (bucket hashing) 232
     uhash = lsh_helper.create_ht(1, n, nn.k) #1 - for linked lists; 2 - for hybrid chains
-    
     count = 0
     computed_hashes_of_ulshs = eval(`[[[0]*4]*X.shape[0]]*nn.l`)
     for i in xrange(X.shape[0]):
@@ -41,7 +40,7 @@ def init_lsh_with_dataset(params, n, X):
         sys.stdout.flush()
         for j in xrange(nn.n_hf_tuples):
             for k in xrange(4):
-                computed_hashes_of_ulshs[j][i][k] = nn.computed_hashes_of_ulshs[j][k]
+                computed_hashes_of_ulshs[j][i][k] = np.uint32(nn.computed_hashes_of_ulshs[j][k])
     print
     first_u_comp = 0
     second_u_comp = 1
@@ -49,7 +48,7 @@ def init_lsh_with_dataset(params, n, X):
         #sys.stdout.write("\rL = %d of %d" % (i + 1, nn.l))
         for j in range(X.shape[0]):
             lsh_helper.add_bucket_entry(uhash, 2, computed_hashes_of_ulshs[first_u_comp][j], computed_hashes_of_ulshs[second_u_comp][j], j)
-       
+        
         second_u_comp += 1
         if second_u_comp == nn.n_hf_tuples:
             first_u_comp += 1
@@ -65,11 +64,12 @@ def init_lsh_with_dataset(params, n, X):
 
 
 def get_ngh_struct(nn, q):
+    ##print 'query', 
     lsh_helper.construct_point(nn, nn.hashed_buckets[0], q)
     computed_hashes_of_ulshs = eval(`[[0]*4]*nn.n_hf_tuples`)
     for i in xrange(nn.n_hf_tuples):
         for j in xrange(4):
-            computed_hashes_of_ulshs[i][j] = nn.computed_hashes_of_ulshs[i][j]
+            computed_hashes_of_ulshs[i][j] = np.uint32(nn.computed_hashes_of_ulshs[i][j])
     first_u_comp = 0
     second_u_comp = 1
     
@@ -91,13 +91,15 @@ def get_ngh_struct(nn, q):
                 if hybrid_point.point.bucket_length == 0:
                     offset = 0
                     for j in range(const.n_fields_per_index_of_overflow):
-                        offset += ((C.pointer(hybrid_point)[1+j].point.bucket_length) << (j * const.n_bits_for_bucket_length))
+                        offset += np.uint32((C.pointer(hybrid_point)[1+j].point.bucket_length) << (j * const.n_bits_for_bucket_length))
+
                 index = 0
                 done = False
                 while not done:
                     if index == const.max_nonoverflow_points_per_bucket:
                         index += offset
                     candidate_index = C.pointer(hybrid_point)[index].point.point_index
+                    print 'candidate_index = ', candidate_index
                     assert(candidate_index >= 0 and candidate_index < nn.n)
                     done = True if C.pointer(hybrid_point)[index].point.is_last_point else False
                     index += 1
@@ -108,9 +110,7 @@ def get_ngh_struct(nn, q):
                         n_marked_points += 1
 
                         candidate_point = nn.points[candidate_index]
-                        print candidate_index, np.linalg.norm(q - candidate_point) 
                         if np.linalg.norm(q - candidate_point) <= nn.r:
-                            print 'cand index=', candidate_index
 
                             neighbours.append((candidate_point, candidate_index))
 
@@ -134,8 +134,8 @@ def determine_rt_coeffs(params, X):
 
     nn = init_lsh_with_dataset(params, n, X[:n,:])
      
-    for i in range(10):
-        print len(get_ngh_struct(nn, X[i]))
+    for i in range(1):
+        print 'nNNs=',len(get_ngh_struct(nn, X[i]))
      
      
 '''

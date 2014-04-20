@@ -48,17 +48,18 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
         uhash.ll_hash_table = [None for x in range(table_size)]
     elif t == 2:
         assert (model_ht != None)
-        uhash.hybrid_hash_table = (lsh_structs.hybrid_chain_entry * table_size)()
+        uhash.hybrid_hash_table = [None for x in range(table_size)] #(lsh_structs.hybrid_chain_entry * table_size)()
         uhash.hybrid_chains_storage = (lsh_structs.hybrid_chain_entry * (model_ht.points + model_ht.buckets))()
-
+        ##print 'sett cons = ',uhash.hybrid_chains_storage[2].point.bucket_length
         index_in_storage = 0
         last_index_in_storage = model_ht.points + model_ht.buckets - 1
         for i in range(table_size):
             b = model_ht.ll_hash_table[i]
             if b:
                 uhash.hybrid_hash_table[i] = uhash.hybrid_chains_storage[index_in_storage]
-            else:
-                uhash.hybrid_hash_table[i].is_null = 1
+                ##print 'index_in_storage=', index_in_storage, 'i=', i
+            ##else:
+             ##   uhash.hybrid_hash_table[i] = lsh_structs.hybrid_chain_entry()
             while b:
                 points_in_b = 1
                 b_entry = b.first_entry.next_entry
@@ -67,13 +68,14 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
                     b_entry = b_entry.next_entry
 
                 uhash.hybrid_chains_storage[index_in_storage].control_value = b.control_value
+                ##print 'index_in_storage=', index_in_storage, 'control_value=',b.control_value
                 index_in_storage += 1
                 uhash.hybrid_chains_storage[index_in_storage].point.is_last_bucket = 1 if (not b.next_bucket_in_chain) else 0
-                last += uhash.hybrid_chains_storage[index_in_storage].point.is_last_bucket
-                #print 'L', uhash.hybrid_chains_storage[index_in_storage].point.is_last_bucket
                 uhash.hybrid_chains_storage[index_in_storage].point.bucket_length = points_in_b if (points_in_b <= const.max_nonoverflow_points_per_bucket) else 0
 
                 uhash.hybrid_chains_storage[index_in_storage].point.is_last_point = 1 if (points_in_b == 1) else 0
+
+                last += uhash.hybrid_chains_storage[index_in_storage].point.is_last_point
                 uhash.hybrid_chains_storage[index_in_storage].point.point_index = b.first_entry.point_index
                 index_in_storage += 1
 
@@ -82,7 +84,7 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
                 overflow_start = last_index_in_storage
 
                 if points_in_b <= const.max_nonoverflow_points_per_bucket:
-                    index_in_storage += points_in_b - 1
+                    index_in_storage = index_in_storage + points_in_b - 1
                 else:
                     n_overflow = points_in_b - const.max_nonoverflow_points_per_bucket
                     overflow_start = last_index_in_storage - n_overflow + 1
@@ -100,13 +102,12 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
                     uhash.hybrid_chains_storage[curr_index].point.point_index = b_entry.point_index
                     uhash.hybrid_chains_storage[curr_index].point.is_last_point = 0
                     b_entry = b_entry.next_entry
-
                     curr_index += 1
                     if curr_index == index_in_storage and points_in_b > const.max_nonoverflow_points_per_bucket:
                         curr_index = overflow_start
                 uhash.hybrid_chains_storage[curr_index - 1].point.is_last_point = 1
                 b = b.next_bucket_in_chain
-        
+            ##print 'uhash.hybrid_hash_table[i].control_value=', uhash.hybrid_hash_table[i].control_value, 'i=', i
         assert(index_in_storage == last_index_in_storage + 1)
         uhash.points = model_ht.points
         uhash.buckets = model_ht.buckets
@@ -169,7 +170,6 @@ def compute_uhf_of_ulsh(uhash, ulsh, length):
 def construct_point(nn, uhash, p):
     # you have to time this
     reduced_p = p / nn.r 
-    
     nn.computed_ulshs = []
     for i in range(nn.n_hf_tuples):
         nn.computed_ulshs.append(compute_ulsh(nn, i, reduced_p))
@@ -216,16 +216,22 @@ def get_bucket(uhash, pieces, first_bucket_vector, second_bucket_vector):
     h_index = np.uint32(h_index)
     h_index = h_index % uhash.table_size
 
+    ##print 'just'
+    ##for i in range(uhash.table_size):
+    ##    print uhash.hybrid_hash_table[i].control_value
+    ##print 'done' 
     control = np.uint64(first_bucket_vector[1]) + np.uint64(second_bucket_vector[1 + 2])
     if control >= const.prime_default:
         control -= const.prime_default
     assert(control < const.prime_default)
     control = np.uint32(control)
-
+    print 'beg'
     if uhash.t == 2:
         index_hybrid = uhash.hybrid_hash_table[h_index]
-        while not index_hybrid.is_null:
-            #print 'enter',
+        print 'index_hybrid=', index_hybrid
+
+        while index_hybrid:
+            print 'h_index=', h_index, 'control_value', index_hybrid.control_value, 'control=', control
             if index_hybrid.control_value == control:
                 index_hybrid = C.pointer(index_hybrid)[1]
                 return index_hybrid
