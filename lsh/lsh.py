@@ -99,7 +99,7 @@ def get_ngh_struct(nn, q):
                     if index == const.max_nonoverflow_points_per_bucket:
                         index += offset
                     candidate_index = C.pointer(hybrid_point)[index].point.point_index
-                    print 'candidate_index = ', candidate_index
+                    #print 'candidate_index = ', candidate_index
                     assert(candidate_index >= 0 and candidate_index < nn.n)
                     done = True if C.pointer(hybrid_point)[index].point.is_last_point else False
                     index += 1
@@ -111,7 +111,7 @@ def get_ngh_struct(nn, q):
 
                         candidate_point = nn.points[candidate_index]
                         if np.linalg.norm(q - candidate_point) <= nn.r:
-
+                            print 'candidate index =', candidate_index
                             neighbours.append((candidate_point, candidate_index))
 
     for i in range(n_marked_points):
@@ -134,8 +134,10 @@ def determine_rt_coeffs(params, X):
 
     nn = init_lsh_with_dataset(params, n, X[:n,:])
      
-    for i in range(1):
-        print 'nNNs=',len(get_ngh_struct(nn, X[i]))
+    for i in range(20):
+        q = const.prng.randint(0, n-1)
+        print 'query =' , q
+        print 'nNNs=', len(get_ngh_struct(nn, X[q]))
      
      
 '''

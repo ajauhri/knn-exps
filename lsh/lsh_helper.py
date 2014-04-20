@@ -225,13 +225,13 @@ def get_bucket(uhash, pieces, first_bucket_vector, second_bucket_vector):
         control -= const.prime_default
     assert(control < const.prime_default)
     control = np.uint32(control)
-    print 'beg'
+    #print 'beg'
     if uhash.t == 2:
         index_hybrid = uhash.hybrid_hash_table[h_index]
-        print 'index_hybrid=', index_hybrid
+        ##print 'index_hybrid=', index_hybrid
 
         while index_hybrid:
-            print 'h_index=', h_index, 'control_value', index_hybrid.control_value, 'control=', control
+            ##print 'h_index=', h_index, 'control_value', index_hybrid.control_value, 'control=', control
             if index_hybrid.control_value == control:
                 index_hybrid = C.pointer(index_hybrid)[1]
                 return index_hybrid
