@@ -116,18 +116,18 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
         uhash.control_hash = control_hash
         uhash.main_hash_a = main_hash_a
     else:
-        uhash.main_hash_a = np.random.random_integers(1, const.max_hash_rnd, uhash.data_length)
-        uhash.control_hash = np.random.random_integers(1, const.max_hash_rnd, uhash.data_length)
-    print 'last=', last 
+        uhash.main_hash_a = const.prng.random_integers(1, const.max_hash_rnd, uhash.data_length)
+        uhash.control_hash = const.prng.random_integers(1, const.max_hash_rnd, uhash.data_length)
+    #print 'last=', last 
     return uhash
 
 # box-muller transform
 def gen_normal():
     while True:
-        x1 = np.random.uniform(0, 1)
+        x1 = const.prng.uniform(0, 1)
         if x1 != 0:
             break
-    x2 = np.random.uniform(0, 1)
+    x2 = const.prng.uniform(0, 1)
     return (np.sqrt(-2.0 * np.log(x1)) * np.cos(2 * np.pi * x2))
 
 def init_hash_functions(params, n, d):
@@ -144,7 +144,7 @@ def init_hash_functions(params, n, d):
             for k in range(d):
                 nn.funcs[i][j].a.append(gen_normal())
             nn.funcs[i][j].a = np.array(nn.funcs[i][j].a).reshape(1, d)
-            nn.funcs[i][j].b = np.random.uniform(0, params.w) 
+            nn.funcs[i][j].b = const.prng.uniform(0, params.w) 
     nn.marked_points = [False for x in range(n)] 
     nn.marked_points_indices = [None for x in range(n)]
     return nn 

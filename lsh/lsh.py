@@ -49,7 +49,7 @@ def init_lsh_with_dataset(params, n, X):
         #sys.stdout.write("\rL = %d of %d" % (i + 1, nn.l))
         for j in range(X.shape[0]):
             lsh_helper.add_bucket_entry(uhash, 2, computed_hashes_of_ulshs[first_u_comp][j], computed_hashes_of_ulshs[second_u_comp][j], j)
-        
+       
         second_u_comp += 1
         if second_u_comp == nn.n_hf_tuples:
             first_u_comp += 1
@@ -108,7 +108,10 @@ def get_ngh_struct(nn, q):
                         n_marked_points += 1
 
                         candidate_point = nn.points[candidate_index]
+                        print candidate_index, np.linalg.norm(q - candidate_point) 
                         if np.linalg.norm(q - candidate_point) <= nn.r:
+                            print 'cand index=', candidate_index
+
                             neighbours.append((candidate_point, candidate_index))
 
     for i in range(n_marked_points):
@@ -131,9 +134,8 @@ def determine_rt_coeffs(params, X):
 
     nn = init_lsh_with_dataset(params, n, X[:n,:])
      
-    for i in range(1):
-        r = randrange(n)
-        print 'sdfd =', len(get_ngh_struct(nn, X[i]))
+    for i in range(10):
+        print len(get_ngh_struct(nn, X[i]))
      
      
 '''
@@ -142,6 +144,8 @@ Q - query data
 r - radii
 '''
 def compute_opt(X, Q, r=0.6):
+    prng = np.random.RandomState()
+    const.prng = prng
     params = alg_params()
 
     ''' setup algo params''' 
