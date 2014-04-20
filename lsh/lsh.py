@@ -5,6 +5,7 @@ import math
 import numpy as np
 import psutil 
 from random import randrange
+import ctypes as C 
 
 # user defined libs
 import const
@@ -17,7 +18,6 @@ const.success_pr = 0.9
 const.w = 4
 const.HYBRID = True
 
-# SelfTuning.cpp:275
 def comute_l(k, success_prob):
     p = compute_p(const.w, 1)
     return math.ceil( math.log(1 - success_prob) / math.log(1 - math.pow(p, k)))
@@ -25,11 +25,13 @@ def comute_l(k, success_prob):
 def init_lsh_with_dataset(params, n, X):
     # initialize hash functions
     debug("initializing hash functions")
-    nn = lsh_helper.init_hash_functions(params, n)
+
+    nn = lsh_helper.init_hash_functions(params, n, X.shape[1])
     nn.points = X
 
     # initialize second level hashing (bucket hashing) 232
     uhash = lsh_helper.create_ht(1, n, nn.k) #1 - for linked lists; 2 - for hybrid chains
+    
     count = 0
     computed_hashes_of_ulshs = eval(`[[[0]*4]*X.shape[0]]*nn.l`)
     for i in xrange(X.shape[0]):
@@ -43,21 +45,21 @@ def init_lsh_with_dataset(params, n, X):
     print
     first_u_comp = 0
     second_u_comp = 1
-    for i in xrange(nn.l):
-        sys.stdout.write("\rL = %d of %d" % (i + 1, nn.l))
-        for j in xrange(X.shape[0]):
+    for i in range(nn.l):
+        #sys.stdout.write("\rL = %d of %d" % (i + 1, nn.l))
+        for j in range(X.shape[0]):
             lsh_helper.add_bucket_entry(uhash, 2, computed_hashes_of_ulshs[first_u_comp][j], computed_hashes_of_ulshs[second_u_comp][j], j)
-
+        
         second_u_comp += 1
         if second_u_comp == nn.n_hf_tuples:
             first_u_comp += 1
             second_u_comp = first_u_comp + 1
-       
-        nn.hashed_buckets.append(lsh_helper.create_ht(2, n, nn.k, True, uhash.control_hash, uhash.main_hash_a, uhash))
+           
+        nn.hashed_buckets.append(lsh_helper.create_ht(2, n, nn.k, True, uhash.main_hash_a, uhash.control_hash, uhash))
         uhash.ll_hash_table = [None for x in range(uhash.table_size)]
         uhash.points = 0
         uhash.buckets = 0
-        sys.stdout.flush()
+        #sys.stdout.flush()
     print
     return nn
 
@@ -75,8 +77,8 @@ def get_ngh_struct(nn, q):
     n_marked_points = 0
 
     for i in xrange(nn.l):
-        hybrid_hash_table = nn.hashed_buckets[i].hybrid_hash_table
-        b_index = lsh_helper.get_bucket(nn.hashed_buckets[i], 2, computed_hashes_of_ulshs[first_u_comp], computed_hashes_of_ulshs[second_u_comp])
+        hybrid_point = lsh_helper.get_bucket(nn.hashed_buckets[i], 2, computed_hashes_of_ulshs[first_u_comp], computed_hashes_of_ulshs[second_u_comp])
+        #print 'p=',hybrid_point
 
         second_u_comp += 1
         if second_u_comp == nn.n_hf_tuples:
@@ -84,20 +86,20 @@ def get_ngh_struct(nn, q):
             second_u_comp = first_u_comp + 1
 
         if nn.hashed_buckets[i].t == 2:
-            if b_index and hybrid_hash_table[b_index]:
+            if hybrid_point:
                 offset = 0
-                if hybrid_hash_table[b_index].point.bucket_length == 0:
+                if hybrid_point.point.bucket_length == 0:
                     offset = 0
                     for j in range(const.n_fields_per_index_of_overflow):
-                        offset += ((hybrid_hash_table[b_index + 1 + j].point.bucket_length) << (j * const.n_bits_for_bucket_length))
+                        offset += ((C.pointer(hybrid_point)[1+j].point.bucket_length) << (j * const.n_bits_for_bucket_length))
                 index = 0
                 done = False
                 while not done:
                     if index == const.max_nonoverflow_points_per_bucket:
                         index += offset
-                    candidate_index = hybrid_hash_table[b_index + index].point.point_index
+                    candidate_index = C.pointer(hybrid_point)[index].point.point_index
                     assert(candidate_index >= 0 and candidate_index < nn.n)
-                    done = True if hybrid_hash_table[b_index + index].point.is_last_point else False
+                    done = True if C.pointer(hybrid_point)[index].point.is_last_point else False
                     index += 1
 
                     if nn.marked_points[candidate_index] == False:
@@ -106,8 +108,7 @@ def get_ngh_struct(nn, q):
                         n_marked_points += 1
 
                         candidate_point = nn.points[candidate_index]
-                        
-                        if np.linalg.norm(q - candidate_point) <= nn.r**2:
+                        if np.linalg.norm(q - candidate_point) <= nn.r:
                             neighbours.append((candidate_point, candidate_index))
 
     for i in range(n_marked_points):
@@ -129,10 +130,12 @@ def determine_rt_coeffs(params, X):
     params.l = int(params.m * (params.m - 1) / 2)
 
     nn = init_lsh_with_dataset(params, n, X[:n,:])
-    for i in range(20):
+     
+    for i in range(1):
         r = randrange(n)
-        print len(get_ngh_struct(nn, X[r]))
-
+        print 'sdfd =', len(get_ngh_struct(nn, X[i]))
+     
+     
 '''
 X - training data
 Q - query data
@@ -148,7 +151,6 @@ def compute_opt(X, Q, r=0.6):
     #params.t = X.shape[0] # setting to the size of the training set
     params.d = X.shape[1]
     params.r = r
-    params.r2 = r**2
 
     available_mem = psutil.phymem_usage().available
 
