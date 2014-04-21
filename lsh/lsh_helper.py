@@ -2,9 +2,11 @@ from __future__ import division
 import ctypes as C
 import math
 import numpy as np
+from lsh_globals import timers
 
 import lsh_structs
 import const
+import time
 
 
 def compute_product_mod_default_prime(a, b, size):
@@ -131,9 +133,11 @@ def gen_normal():
     x2 = const.prng.uniform(0, 1)
     return (np.sqrt(-2.0 * np.log(x1)) * np.cos(2 * np.pi * x2))
 
-def init_hash_functions(params, n, d):
+def init_hash_functions(params, n, X):
+    d = X.shape[1]
     nn = lsh_structs.nn_struct(int(params.k / 2), int(params.m))
     nn.n = n
+    nn.points = X
     nn.r = params.r
     nn.l = params.l
     nn.k = params.k
@@ -168,7 +172,7 @@ def compute_uhf_of_ulsh(uhash, ulsh, length):
     return arr
 
 def construct_point(nn, uhash, p):
-    # you have to time this
+    start_time = time.time()
     reduced_p = p / nn.r 
     nn.computed_ulshs = []
     for i in range(nn.n_hf_tuples):
@@ -177,7 +181,8 @@ def construct_point(nn, uhash, p):
     nn.computed_hashes_of_ulshs = []
     for i in range(nn.n_hf_tuples):
         nn.computed_hashes_of_ulshs.append(compute_uhf_of_ulsh(uhash, np.array(nn.computed_ulshs[i]), nn.hf_tuples_length))
-
+    
+    timers.compute_lsh_time += time.time() - start_time
 
 def add_bucket_entry(uhash, pieces, first_bucket_vector, second_bucket_vector, point_index):
     #print first_bucket_vector, second_bucket_vector
