@@ -39,7 +39,7 @@ def init():
     elif options.generic:
         debug('running with generic dataset...')
         X = generic(options.ifile)
-        lsh.compute_opt(X[:100,:], X[:40])
+        lsh.start(X[:1000,:], X[:100])
         #knn_naive.knn_naive(500, X[1], X)
         debug('input loaded')
 
