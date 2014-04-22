@@ -254,6 +254,6 @@ def compute_opt(X, Q, r):
     res = {'k' : best_k, 'm' : m, 'l' : l}
     return res
 
-def start(X, Q):
+def start(X, Q, r):
     # determine the optimal values for `k` `m` and `l`
-    opt_values = compute_opt(X, Q, 0.6)
+    opt_values = compute_opt(X, Q, r) 

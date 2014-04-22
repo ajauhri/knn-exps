@@ -8,8 +8,11 @@ from extras.helper import debug
 import lsh.lsh as lsh
 def init():
     parser = OptionParser()
-    parser.add_option("-i", "--input", dest="ifile", help="input file")
-    parser.add_option("-t", "--train", dest="tfile", help="train file")
+    parser.add_option("-t", "--train", dest="tfile", help="training file")
+    parser.add_option("-q", "--query", dest="qfile", help="query file")
+    parser.add_option("-r", "--radius", dest="r", help="radius for LSH", type="float", default=0.6)
+    parser.add_option("-i", "--ntrains", dest="i", help="#of trainings in training file to be included", type="int")
+    parser.add_option("-j", "--nquerys", dest="j", help="#of queries in query file to be included", type="int")
     parser.add_option("-n", "--netflix", dest="netflix", help="run with netflix data", action='store_true')
     parser.add_option("-s", "--stackex", dest="stackex", help="run with stackexchange data", action='store_true')
     parser.add_option("-g", "--generic", dest="generic", help="run with generic", action='store_true')
@@ -18,7 +21,13 @@ def init():
     # netflix block #
     if options.netflix:
         debug('running with netflix...')
-        X = netflix(options.ifile)[:200,:]
+        D = netflix(options.tfile)
+        X = D[:options.i]
+        if not options.qfile:
+            Q = D[:options.j]
+        else:
+            Q = netflix(options.qfile)[:options.j]
+
         debug('loaded input')
         #root = create_cover_tree(X[:200,:])
         #T = input_parsers.netflix(options.tfile)
@@ -27,9 +36,7 @@ def init():
         #dfs(root)
         #knn_naive.knn_naive(2, X[201,:], X[:100,:])
         #debug('done with naive')
-        lsh.compute_opt(X, X[:10,:])
-        debug('done with lsh')
-
+        #lsh.compute_opt(X, X[:10,:])
 
     # stackoverflow block #
     elif options.stackex:
@@ -38,8 +45,15 @@ def init():
     # generic block #
     elif options.generic:
         debug('running with generic dataset...')
-        X = generic(options.ifile)
-        lsh.start(X[:1000,:], X[:100])
+        
+        D = generic(options.tfile)
+        X = D[:options.i]
+        if not options.qfile:
+            Q = D[:options.j]
+        else:
+            Q = generic(options.qfile)[:options.j]
+
+        lsh.start(X, Q, options.r)
         #knn_naive.knn_naive(500, X[1], X)
         debug('input loaded')
 
