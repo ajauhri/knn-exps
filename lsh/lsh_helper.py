@@ -33,6 +33,9 @@ def compute_p(w, c):
     x = w / c
     return 1 - math.erfc(x / np.sqrt(2)) - 2 * np.sqrt(1/np.pi) / np.sqrt(2) / x * (1 - np.exp(-(x**2) / 2))
 
+''' 
+`m` is #of `u_i`s. Note that `g_i` is formed by a pair of `u_i`s, and therefore makes `g_i`s interdependent.
+'''
 def compute_m(k, p, w):
     assert((k & 1) == 0) # k should be even in order to use ULSH
     mu = 1 - math.pow(compute_p(w, 1), k / 2)
@@ -121,7 +124,6 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
     else:
         uhash.main_hash_a = const.prng.random_integers(1, const.max_hash_rnd, uhash.data_length)
         uhash.control_hash = const.prng.random_integers(1, const.max_hash_rnd, uhash.data_length)
-    #print 'last=', last 
     return uhash
 
 # box-muller transform
@@ -133,7 +135,8 @@ def gen_normal():
     x2 = const.prng.uniform(0, 1)
     return (np.sqrt(-2.0 * np.log(x1)) * np.cos(2 * np.pi * x2))
 
-def init_hash_functions(params, n, X):
+# To initialize locality preserving hash functions. These form a set of tuples; each tuple is a set of hash functions; each hash function is a set of randomly drawn values for a gaussion distribution for each dimension of the input vector and a uniformly drawn value
+def init_lp_hfs(params, n, X):
     d = X.shape[1]
     nn = lsh_structs.nn_struct(int(params.k / 2), int(params.m))
     nn.n = n
@@ -141,7 +144,11 @@ def init_hash_functions(params, n, X):
     nn.r = params.r
     nn.l = params.l
     nn.k = params.k
+
+    # <n_hf_tuples> is the number of hash function tuples i.e. <u_i>s
     nn.n_hf_tuples = int(params.m)
+
+    # each <u_i> has length <k/2> of hash functions 
     nn.hf_tuples_length = int(params.k / 2)
     nn.w = params.w
     for i in range(nn.n_hf_tuples):
@@ -183,9 +190,9 @@ def construct_point(nn, uhash, p):
         nn.computed_hashes_of_ulshs.append(compute_uhf_of_ulsh(uhash, np.array(nn.computed_ulshs[i]), nn.hf_tuples_length))
     
     timers.compute_lsh_time += time.time() - start_time
-
+'''
+'''
 def add_bucket_entry(uhash, pieces, first_bucket_vector, second_bucket_vector, point_index):
-    #print first_bucket_vector, second_bucket_vector
     h_index = np.uint64(first_bucket_vector[0]) + np.uint64(second_bucket_vector[0 + 2])
     if h_index >= const.prime_default:
         h_index -= const.prime_default
@@ -206,7 +213,6 @@ def add_bucket_entry(uhash, pieces, first_bucket_vector, second_bucket_vector, p
         # if bucket does not exist
         if b is None:
             uhash.buckets += 1
-            #print "HO ", uhash.buckets, point_index
             uhash.ll_hash_table[h_index] = lsh_structs.bucket(control, point_index, uhash.ll_hash_table[h_index])
         else:
             bucket_entry = lsh_structs.bucket_entry(point_index, b.first_entry.next_entry)
@@ -221,32 +227,23 @@ def get_bucket(uhash, pieces, first_bucket_vector, second_bucket_vector):
     h_index = np.uint32(h_index)
     h_index = h_index % uhash.table_size
 
-    ##print 'just'
-    ##for i in range(uhash.table_size):
-    ##    print uhash.hybrid_hash_table[i].control_value
-    ##print 'done' 
     control = np.uint64(first_bucket_vector[1]) + np.uint64(second_bucket_vector[1 + 2])
     if control >= const.prime_default:
         control -= const.prime_default
     assert(control < const.prime_default)
     control = np.uint32(control)
-    #print 'beg'
+    
     if uhash.t == 2:
         index_hybrid = uhash.hybrid_hash_table[h_index]
-        ##print 'index_hybrid=', index_hybrid
 
         while index_hybrid:
-            ##print 'h_index=', h_index, 'control_value', index_hybrid.control_value, 'control=', control
             if index_hybrid.control_value == control:
                 index_hybrid = C.pointer(index_hybrid)[1]
                 return index_hybrid
             else:
                 index_hybrid = C.pointer(index_hybrid)[1]
                 if index_hybrid.point.is_last_bucket:
-                    #print 'leave 2 ', hybrid_hash_table[h_index].point.is_last_bucket
                     return None
                 l = index_hybrid.point.bucket_length
                 index_hybrid = C.pointer(index_hybrid)[l]
-        #print h_index
-        #print 'leave 3'
         return None
