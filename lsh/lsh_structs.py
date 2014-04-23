@@ -13,18 +13,13 @@ const.max_nonoverflow_points_per_bucket = ((1 << const.n_bits_for_bucket_length)
 class alg_params:
     def __init__(self):
         self.r = None
-        self.r2 = None
         self.w = None
-        self.l = None #nHFTuples
-        self.k = None #hfTuplesLength
+        self.l = None 
+        self.k = None 
         self.d = None
         self.m = None
         self.type_ht = None
         self.success_pr = None
-        #self.points_arr_size = None
-        self.points = None
-        self.n_points = 0
-        self.computed_ulshs = []
 
 class nn_struct:
     def __init__(self, k, l):

@@ -105,7 +105,6 @@ def get_ngh_struct(nn, q):
                     if index == const.max_nonoverflow_points_per_bucket:
                         index += offset
                     candidate_index = C.pointer(hybrid_point)[index].point.point_index
-                    #print 'candidate_index = ', candidate_index
                     assert(candidate_index >= 0 and candidate_index < nn.n)
                     done = True if C.pointer(hybrid_point)[index].point.is_last_point else False
                     index += 1
@@ -130,7 +129,7 @@ def get_ngh_struct(nn, q):
 def estimate_collisions(n, dim, X, q, k, m, r):
     tot_collisions = 0
     for i in range(n):
-        if np.any(q - X[i]):
+        if not (q == X[i]).all():
             dist = np.linalg.norm(q - X[i])
             mu = 1 - math.pow(lsh_helper.compute_p(const.w, dist/r), k/2)
             x = math.pow(mu, m - 1)
@@ -139,16 +138,13 @@ def estimate_collisions(n, dim, X, q, k, m, r):
     return tot_collisions
 
            
-def determine_coeffs(params, X, Q):
+def determine_coeffs(params, X):
     n = X.shape[0] / 50
     if n < 100:
         n = X.shape[0] 
     elif n > 10000:
         n = 10000
 
-    params.m = lsh_helper.compute_m(params.k, params.success_pr, params.w) 
-    params.l = int(params.m * (params.m - 1) / 2)
-    
     n_suc_reps = 0 
     while n_suc_reps < 5: 
         nn = init_lsh(params, n, X[:n,:])
@@ -157,16 +153,16 @@ def determine_coeffs(params, X, Q):
         lsh_pre_comp = 0
         u_hash_comp = 0
         dist_comp = 0
-        n_queries = Q.shape[0]
+        n_queries = 20
         for i in range(n_queries):
             timers.compute_lsh_time = 0
             timers.get_bucket_time = 0
             timers.bucket_cycle_time = 0
             lsh_globals.n_dist_comps = 0
 
-            q_index = const.prng.randint(0, Q.shape[0] - 1)
-            debug('query #' + str(i))
-            nghs = get_ngh_struct(nn, Q[q_index])
+            q_index = const.prng.randint(0, X.shape[0] - 1)
+            debug('query #%d; index #%d' % (i, q_index))
+            nghs = get_ngh_struct(nn, X[q_index])
             debug('nNNs=' + str(len(nghs)))
             for ngh in nghs:
                 debug('candidate_index = %d, distance = %f' % (ngh[1], ngh[2]))
@@ -182,27 +178,31 @@ def determine_coeffs(params, X, Q):
             u_hash_comp /= n_suc_reps
             dist_comp /= n_suc_reps
         else:
+            debug("lsh updated radius")
             params.r = params.r*2
     return (lsh_pre_comp, u_hash_comp, dist_comp)
      
 '''
 X - training data
-Q - query data
 r - radii
 '''
-def compute_opt(X, Q, r):
+def compute_opt(X, r):
     available_mem = psutil.phymem_usage().available
     prng = np.random.RandomState()
     const.prng = prng
-    params = alg_params()
+    opt_params = alg_params()
 
     ''' setup algo params''' 
-    params.success_pr = const.success_pr
-    params.w = const.w
-    params.type_ht = const.HYBRID
-    params.d = X.shape[1]
-    params.r = r
-    params.k = 16
+    opt_params.success_pr = const.success_pr
+    opt_params.w = const.w
+    opt_params.type_ht = const.HYBRID
+    opt_params.d = X.shape[1]
+    opt_params.r = r
+    opt_params.k = 16
+
+    opt_params.m = lsh_helper.compute_m(opt_params.k, opt_params.success_pr, opt_params.w) 
+    opt_params.l = int(opt_params.m * (opt_params.m - 1) / 2)
+
 
     lsh_pre_comp = 0
     u_hash_comp = 0
@@ -211,7 +211,7 @@ def compute_opt(X, Q, r):
     n_reps = 2
     '''determine coefficients for efficient computation '''
     for i in range(n_reps):
-        timing_r = determine_coeffs(params, X, Q)  
+        timing_r = determine_coeffs(opt_params, X) #will modify opt_params.r if need so
         lsh_pre_comp += timing_r[0]
         u_hash_comp += timing_r[1]
         dist_comp += timing_r[2]
@@ -224,22 +224,22 @@ def compute_opt(X, Q, r):
     best_time = 0
     k = 2
     while True:
+        debug("estimating with k=%d..." % k)
         # <m> is #of <u_i>s
         m = lsh_helper.compute_m(k, const.success_pr, const.w)
-
         # <l> is the #of <g_i>s
         l = m * (m-1) / 2 
 
         if l * X.shape[0] > available_mem / 12 :
             break
+
         lsh_time = m * k * lsh_pre_comp
         uh_time = l * u_hash_comp
 
         collisions = 0
-        for i in range(Q.shape[0]):
-            collisions += estimate_collisions(X.shape[0], X.shape[1], X, Q[i], k, m, r)
-
-        collisions /= Q.shape[0]
+        for i in range(100):
+            collisions += estimate_collisions(X.shape[0], X.shape[1], X, X[i], k, m, r)
+        collisions /= 100 
         cycling_time = collisions * dist_comp
 
         if best_k == 0 or (lsh_time + uh_time + cycling_time) < best_time:
@@ -247,13 +247,21 @@ def compute_opt(X, Q, r):
             best_time = lsh_time + uh_time + cycling_time
         assert(k < 100)
         k += 2
-
-    m = lsh_helper.compute_m(best_k, const.success_pr, const.w)
-    l  = m * (m-1) / 2
     
-    res = {'k' : best_k, 'm' : m, 'l' : l}
-    return res
+    m = lsh_helper.compute_m(best_k, const.success_pr, const.w)
+    l = m * (m-1) / 2
+    
+    opt_params.k = best_k
+    opt_params.m = m
+    opt_params.l = l
+    print opt_params.k, opt_params.m, opt_params.l
+    #res = {'k' : best_k, 'm' : m, 'l' : l}
+    return opt_params
 
 def start(X, Q, r):
     # determine the optimal values for `k` `m` and `l`
-    opt_values = compute_opt(X, Q, r) 
+    opt_params = compute_opt(X, r) 
+
+
+     
+
