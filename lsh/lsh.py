@@ -251,9 +251,9 @@ def compute_opt(X, r):
     m = lsh_helper.compute_m(best_k, const.success_pr, const.w)
     l = m * (m-1) / 2
     
-    opt_params.k = best_k
-    opt_params.m = m
-    opt_params.l = l
+    opt_params.k = int(best_k)
+    opt_params.m = int(m)
+    opt_params.l = int(l)
     print opt_params.k, opt_params.m, opt_params.l
     #res = {'k' : best_k, 'm' : m, 'l' : l}
     return opt_params
@@ -261,7 +261,5 @@ def compute_opt(X, r):
 def start(X, Q, r):
     # determine the optimal values for `k` `m` and `l`
     opt_params = compute_opt(X, r) 
-
-
-     
-
+    nn = init_lsh(opt_params, X.shape[0], X)
+    nghs = get_ngh_struct(nn, X[1])

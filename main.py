@@ -28,7 +28,6 @@ def init():
         else:
             Q = netflix(options.qfile)[:options.j]
 
-        debug('loaded input')
         #root = create_cover_tree(X[:200,:])
         #T = input_parsers.netflix(options.tfile)
         #for row in T:
@@ -55,7 +54,6 @@ def init():
 
         lsh.start(X, Q, options.r)
         #knn_naive.knn_naive(500, X[1], X)
-        debug('input loaded')
 
     else:
         debug('data format not specified')
