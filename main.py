@@ -6,6 +6,8 @@ from naive import knn_naive
 from extras.parsers import netflix, generic
 from extras.helper import debug
 import lsh.lsh as lsh
+import cover_tree.cover_tree as cover_tree
+
 def init():
     parser = OptionParser()
     parser.add_option("-t", "--train", dest="tfile", help="training file")
@@ -28,15 +30,6 @@ def init():
         else:
             Q = netflix(options.qfile)[:options.j]
 
-        #root = create_cover_tree(X[:200,:])
-        #T = input_parsers.netflix(options.tfile)
-        #for row in T:
-        #    knn(1, ...
-        #dfs(root)
-        #knn_naive.knn_naive(2, X[201,:], X[:100,:])
-        #debug('done with naive')
-        #lsh.compute_opt(X, X[:10,:])
-
     # stackoverflow block #
     elif options.stackex:
         debug('running with stackoverflow...')
@@ -51,12 +44,13 @@ def init():
             Q = D[:options.j]
         else:
             Q = generic(options.qfile)[:options.j]
-
-        lsh.start(X, Q, options.r)
-        #knn_naive.knn_naive(500, X[1], X)
-
     else:
         debug('data format not specified')
+    
+    #root = conver_tree.create(X)
+    lsh.start(X, Q, options.r)
+    #knn_naive.knn_naive(500, X[1], X)
+    #dfs(root)
 
 if __name__ == "__main__":
     init()

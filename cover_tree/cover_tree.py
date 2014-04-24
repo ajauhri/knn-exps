@@ -10,9 +10,8 @@ import numpy as np
 import scipy.sparse as ss
 
 # user-defined libs
-from parsers.parsers import netflix
 import cover_tree_helper as helper
-from cover_tree_helper import debug
+from extras.helper import debug
 import const
 from naive.knn_naive import knn_naive
 
@@ -66,19 +65,24 @@ def knn(k, p, root):
 
 
 def create(X):
-    dist = ss.csr_matrix(X[1:,:])
-    # make copies of the first vector s.t. sparse matrix substraction. Need to find a better way...
-    stacked_x = ss.csr_matrix((np.tile(p.data, rows), np.tile(p.indices, rows),
-                               np.arange(0, rows*p.nnz + 1, p.nnz)), shape=X.shape)
-    #stacked_x = ss.vstack([X[0] for n in range(dist.get_shape()[0])])
-    dist = dist - stacked_x
-    dist = np.sqrt(dist.multiply(dist).sum(1))
+    if ss.issparse(X):
+        dist = ss.csr_matrix(X[1:,:])
+        rows, cols = dist.shape
+        p = X[0]
+        stacked_x = ss.csr_matrix((np.tile(p.data, rows), np.tile(p.indices, rows),
+                                   np.arange(0, rows*p.nnz + 1, p.nnz)), shape=dist.shape)
+        #stacked_x = ss.vstack([X[0] for n in range(dist.get_shape()[0])])
+        dist = dist - stacked_x
+        dist = np.sqrt(dist.multiply(dist).sum(1))
+    else: #dense matrix
+        dist = X[1:,:] - X[0]
+        dist = np.linalg.norm(dist, axis=1)
 
     # make the first element as root
     root = helper.tree_node(X[0])
     root.max_scale = helper.get_scale(dist.max())
     root.min_scale = root.max_scale
-    debug('insertion started')
+    debug('cover tree initilization with data started')
     for i in xrange(1, X.shape[0]):
         insert(X[i], root, root.max_scale)
     debug('insertion done')

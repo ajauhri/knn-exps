@@ -15,6 +15,7 @@ from extras.helper import debug
 from lsh_structs import alg_params, lsh_func, nn_struct
 import lsh_helper
 import time
+import scipy.sparse as ss
 
 # some constants as descibed in the paper
 const.success_pr = 0.9
@@ -117,7 +118,13 @@ def get_ngh_struct(nn, q):
                         candidate_point = nn.points[candidate_index]
 
                         lsh_globals.n_dist_comps += 1
-                        dist = np.linalg.norm(q - candidate_point)
+                        
+                        diff = q - candidate_point
+                        if ss.issparse(diff):
+                            dist = np.sqrt(diff.multiply(diff).sum(1))[0,0]
+                        else:
+                            dist = np.linalg.norm(q - candidate_point)
+
                         if dist <= nn.r:
                             neighbours.append((candidate_point, candidate_index, dist))
             timers.bucket_cycle_time += time.time() - start_time
@@ -126,15 +133,27 @@ def get_ngh_struct(nn, q):
 
     return neighbours
  
-def estimate_collisions(n, dim, X, q, k, m, r):
+def estimate_collisions(n, dim, X, p_i, k, m, r, is_sparse):
+    if is_sparse:
+        dist = ss.csr_matrix(X)
+        rows, cols = dist.shape
+        p = X[p_i]
+        if p.nnz > 0:
+            stacked_p = ss.csr_matrix((np.tile(p.data, rows), np.tile(p.indices, rows),
+                                   np.arange(0, rows*p.nnz + 1, p.nnz)), shape=dist.shape)
+            dist = dist - stacked_p
+            
+        dist = np.sqrt(dist.multiply(dist).sum(1))
+    else:
+        dist = X - X[p_i]
+        dist = np.linalg.norm(dist, axis=1)
+
     tot_collisions = 0
     for i in range(n):
-        if not (q == X[i]).all():
-            dist = np.linalg.norm(q - X[i])
-            mu = 1 - math.pow(lsh_helper.compute_p(const.w, dist/r), k/2)
+        if dist[i]:
+            mu = 1 - math.pow(lsh_helper.compute_p(const.w, dist[i]/r), k/2)
             x = math.pow(mu, m - 1)
             tot_collisions += 1 - mu*x - m * (1 - mu) * x
-
     return tot_collisions
 
            
@@ -232,16 +251,20 @@ def compute_opt(X, r):
 
         if l * X.shape[0] > available_mem / 12 :
             break
-
         lsh_time = m * k * lsh_pre_comp
         uh_time = l * u_hash_comp
 
         collisions = 0
+        
+        if ss.issparse(X):
+            is_sparse = True
+        else:
+            is_sparse = False
+
         for i in range(100):
-            collisions += estimate_collisions(X.shape[0], X.shape[1], X, X[i], k, m, r)
+            collisions += estimate_collisions(X.shape[0], X.shape[1], X, i, k, m, r, is_sparse) 
         collisions /= 100 
         cycling_time = collisions * dist_comp
-
         if best_k == 0 or (lsh_time + uh_time + cycling_time) < best_time:
             best_k = k
             best_time = lsh_time + uh_time + cycling_time
@@ -262,4 +285,4 @@ def start(X, Q, r):
     # determine the optimal values for `k` `m` and `l`
     opt_params = compute_opt(X, r) 
     nn = init_lsh(opt_params, X.shape[0], X)
-    nghs = get_ngh_struct(nn, X[1])
+    #nghs = get_ngh_struct(nn, X[1])
