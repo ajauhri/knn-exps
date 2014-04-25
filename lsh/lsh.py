@@ -37,7 +37,8 @@ def init_lsh(params, n, X):
     uhash = lsh_helper.create_ht(1, n, nn.k)     
 
     count = 0
-    computed_hashes_of_ulshs = eval(`[[[0]*4]*X.shape[0]]*nn.l`)
+    computed_hashes_of_ulshs = [[[0]*4]*X.shape[0]]*nn.l
+    
     for i in xrange(X.shape[0]):
         sys.stdout.write("\r--->loading hashes for point %d out of %d" % (count + 1, X.shape[0]))
         lsh_helper.construct_point(nn, uhash, X[i])
@@ -47,10 +48,11 @@ def init_lsh(params, n, X):
             for k in xrange(4):
                 computed_hashes_of_ulshs[j][i][k] = np.uint32(nn.computed_hashes_of_ulshs[j][k])
     print
+     
 
     first_u_comp = 0
     second_u_comp = 1
-
+    
     # each <g_i> has a hash table <H_i>, and |<g_i>| = l
     for i in range(nn.l):
         sys.stdout.write("\r--->creating hybrid hash table %d out of %d" % (i + 1, nn.l))
@@ -65,6 +67,7 @@ def init_lsh(params, n, X):
         uhash.points = 0
         uhash.buckets = 0
         sys.stdout.flush()
+        
     return nn
 
 
