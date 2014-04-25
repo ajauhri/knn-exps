@@ -285,7 +285,18 @@ def compute_opt(X, r):
 
 def start(X, Q, r):
     # determine the optimal values for `k` `m` and `l`
-    print X.shape, type(r), r
-    opt_params = compute_opt(X, r) 
+    #opt_params = compute_opt(X, r) 
+
+    ''' setup algo params''' 
+    opt_params = alg_params()
+    opt_params.success_pr = const.success_pr
+    opt_params.w = const.w
+    opt_params.type_ht = const.HYBRID
+    opt_params.d = X.shape[1]
+    opt_params.r = r
+    opt_params.k = 20
+    opt_params.m = 35 
+    opt_params.l = 595 
+
     nn = init_lsh(opt_params, X.shape[0], X)
     #nghs = get_ngh_struct(nn, X[1])
