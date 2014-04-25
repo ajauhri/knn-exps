@@ -158,12 +158,7 @@ def estimate_collisions(n, dim, X, p_i, k, m, r, is_sparse):
 
            
 def determine_coeffs(params, X):
-    n = X.shape[0] / 50
-    if n < 100:
-        n = X.shape[0] 
-    elif n > 10000:
-        n = 10000
-
+    n = X.shape[0]
     n_suc_reps = 0 
     while n_suc_reps < 5: 
         nn = init_lsh(params, n, X[:n,:])
@@ -179,7 +174,7 @@ def determine_coeffs(params, X):
             timers.bucket_cycle_time = 0
             lsh_globals.n_dist_comps = 0
 
-            q_index = const.prng.randint(0, X.shape[0] - 1)
+            q_index = const.prng.randint(0, X[:n].shape[0] - 1)
             debug('query #%d; index #%d' % (i, q_index))
             nghs = get_ngh_struct(nn, X[q_index])
             debug('nNNs=' + str(len(nghs)))
@@ -206,6 +201,13 @@ X - training data
 r - radii
 '''
 def compute_opt(X, r):
+    n = int(X.shape[0] / 50)
+    if n < 100:
+        n = X.shape[0] 
+    elif n > 10000:
+        n = 10000
+    X = X[:n]
+
     available_mem = psutil.phymem_usage().available
     prng = np.random.RandomState()
     const.prng = prng
@@ -261,9 +263,9 @@ def compute_opt(X, r):
         else:
             is_sparse = False
 
-        for i in range(100):
+        for i in range(50):
             collisions += estimate_collisions(X.shape[0], X.shape[1], X, i, k, m, r, is_sparse) 
-        collisions /= 100 
+        collisions /= 50 
         cycling_time = collisions * dist_comp
         if best_k == 0 or (lsh_time + uh_time + cycling_time) < best_time:
             best_k = k
@@ -283,6 +285,7 @@ def compute_opt(X, r):
 
 def start(X, Q, r):
     # determine the optimal values for `k` `m` and `l`
+    print X.shape, type(r), r
     opt_params = compute_opt(X, r) 
     nn = init_lsh(opt_params, X.shape[0], X)
     #nghs = get_ngh_struct(nn, X[1])

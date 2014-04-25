@@ -47,7 +47,7 @@ def init():
     else:
         debug('data format not specified')
     
-    #root = conver_tree.create(X)
+    #root = cover_tree.create(X)
     lsh.start(X, Q, options.r)
     #knn_naive.knn_naive(500, X[1], X)
     #dfs(root)
