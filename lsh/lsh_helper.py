@@ -50,7 +50,6 @@ def create_ht(t, table_size, k, use_external=False, main_hash_a=None, control_ha
     last = 0
     uhash = lsh_structs.uh_struct(t, table_size, k)
     if t == 1:
-        print 'here'
         uhash.ll_hash_table = [None for x in range(table_size)]
     elif t == 2:
         assert (model_ht != None)
