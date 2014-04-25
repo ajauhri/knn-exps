@@ -305,4 +305,4 @@ def start(X, Q, r):
     opt_params.l = 595 
 
     nn = init_lsh(opt_params, X.shape[0], X)
-    #nghs = get_ngh_struct(nn, X[1])
+    nghs = get_ngh_struct(nn, X[1])

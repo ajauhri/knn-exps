@@ -32,18 +32,21 @@ def init(fname):
         train_img[start_x:start_x+patch_size, start_y:start_y+patch_size] = [0, 0, 0]
         
     
-    (F, D) = vl_phow(train_img, sizes = [bucket_size], step = s, color = 'hsv')
+    (F, X) = vl_phow(train_img, sizes = [bucket_size], step = s, color = 'hsv')
     trimmed_height = height - 2 * ((bucket_size) * 3/2)
     limit = int(math.ceil(trimmed_height / s)) 
-
+    
+    q = []
     for val in patches:
         # bottom neighbour
         mid_ind = val + 4*limit
         if mid_ind < F.shape[0]:
+            q.append(mid_ind)
             start_x = F[mid_ind][0] - bucket_size / 2
             start_y = F[mid_ind][1] - bucket_size / 2
             query_img[start_x:start_x + patch_size, start_y:start_y+patch_size] = [255, 255, 255]
         else:
+            q.append(-1)
             print 'not found bottom neigbour'
 
 
@@ -51,10 +54,12 @@ def init(fname):
         mid_ind = val - 4*limit
 
         if mid_ind >= 0:
+            q.append(mid_ind)
             start_x = F[mid_ind][0] - bucket_size / 2
             start_y = F[mid_ind][1] - bucket_size / 2
             query_img[start_x:start_x + patch_size, start_y:start_y+patch_size] = [255, 255, 255]
         else:
+            q.append(-1)
             print 'not found top neigbour'
 
 
@@ -62,22 +67,27 @@ def init(fname):
         # right neighbour
         mid_ind = val + 4 
         if mid_ind < F.shape[0]:
+            q.append(mid_ind)
             start_x = F[mid_ind][0] - bucket_size / 2
             start_y = F[mid_ind][1] - bucket_size / 2
             query_img[start_x:start_x + patch_size, start_y:start_y+patch_size] = [255, 255, 255]
         else:
+            q.append(-1)
             print 'not found right neigbour'
 
         # left neighbour
         mid_ind = val - 4
         if mid_ind >= 0:
+            q.append(mid_ind)
             start_x = F[mid_ind][0] - bucket_size / 2
             start_y = F[mid_ind][1] - bucket_size / 2
             query_img[start_x:start_x + patch_size, start_y:start_y+patch_size] = [255, 255, 255]
         else:
+            q.append(-1)
             print 'not found left neighbour'
 
-
+    Q = ss.vstack([X[mid_ind] if mid_ind else np.zeros((1, X.shape[1])) for mid_ind in q])
+    print q
     #print F[ind+1,0], F[ind+1, 1]
     #print (width/6), F.shape
     plt.subplot(211)
@@ -85,8 +95,8 @@ def init(fname):
     plt.subplot(212)
     plt.imshow(query_img, interpolation='nearest')
     plt.show()
-
-    #lsh.start(D, D, float(100))
+    
+    #lsh.start(D, D, float(200))
     
 if __name__ == "__main__":
     init(sys.argv[1])
