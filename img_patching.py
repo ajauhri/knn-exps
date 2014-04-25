@@ -2,6 +2,7 @@
 from __future__ import division
 import sys
 from scipy.misc import imread, imsave
+import numpy as np
 from matplotlib import pyplot as plt
 from vlfeat.phow import vl_phow
 from random import randrange
@@ -86,8 +87,7 @@ def init(fname):
             q.append(-1)
             print 'not found left neighbour'
 
-    Q = ss.vstack([X[mid_ind] if mid_ind else np.zeros((1, X.shape[1])) for mid_ind in q])
-    print q
+    Q = np.vstack([X[mid_ind] if mid_ind else np.zeros((1, X.shape[1])) for mid_ind in q])
     #print F[ind+1,0], F[ind+1, 1]
     #print (width/6), F.shape
     plt.subplot(211)
@@ -96,7 +96,7 @@ def init(fname):
     plt.imshow(query_img, interpolation='nearest')
     plt.show()
     
-    #lsh.start(D, D, float(200))
+    lsh.start(X, Q, float(200))
     
 if __name__ == "__main__":
     init(sys.argv[1])

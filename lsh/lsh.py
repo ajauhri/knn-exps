@@ -305,4 +305,10 @@ def start(X, Q, r):
     opt_params.l = 595 
 
     nn = init_lsh(opt_params, X.shape[0], X)
-    nghs = get_ngh_struct(nn, X[1])
+    for q in Q:
+        nghs = get_ngh_struct(nn, q)
+        debug('nNNs= %d' % (len(nghs)))
+        for ngh in nghs:
+            debug('candidate_index = %d, distance = %f' % (ngh[1], ngh[2]))
+
+
