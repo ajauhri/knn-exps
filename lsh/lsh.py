@@ -284,6 +284,9 @@ def compute_opt(X, r):
     return opt_params
 
 def start(X, Q, r):
+    prng = np.random.RandomState()
+    const.prng = prng
+
     # determine the optimal values for `k` `m` and `l`
     #opt_params = compute_opt(X, r) 
 
