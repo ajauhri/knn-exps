@@ -129,7 +129,7 @@ def get_ngh_struct(nn, q):
                             dist = np.linalg.norm(q - candidate_point)
 
                         if dist <= nn.r:
-                            neighbours.append((candidate_point, candidate_index, dist))
+                            neighbours.append((candidate_index, dist))
             timers.bucket_cycle_time += time.time() - start_time
     for i in range(n_marked_points):
         nn.marked_points[nn.marked_points_indices[i]] = False
@@ -182,7 +182,7 @@ def determine_coeffs(params, X):
             nghs = get_ngh_struct(nn, X[q_index])
             debug('nNNs=' + str(len(nghs)))
             for ngh in nghs:
-                debug('candidate_index = %d, distance = %f' % (ngh[1], ngh[2]))
+                debug('candidate_index = %d, distance = %f' % (ngh[0], ngh[1]))
 
             if lsh_globals.n_dist_comps >= min(n/10, 100):
                 n_suc_reps += 1
@@ -305,10 +305,13 @@ def start(X, Q, r):
     opt_params.l = 595 
 
     nn = init_lsh(opt_params, X.shape[0], X)
+    nghs = []
+    ones = np.ones((1, X.shape[1]))
     for q in Q:
-        nghs = get_ngh_struct(nn, q)
-        debug('nNNs= %d' % (len(nghs)))
-        for ngh in nghs:
-            debug('candidate_index = %d, distance = %f' % (ngh[1], ngh[2]))
-
+        if not (q == ones).all():
+            nghs.append(get_ngh_struct(nn, q))
+        else:
+            nghs.append([])
+    
+    return nghs
 
