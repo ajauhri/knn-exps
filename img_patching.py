@@ -86,9 +86,9 @@ def init(fname):
             print 'not found left neighbour'
 
     Q = np.vstack([X[patch_i] if patch_i != -1 else np.ones((1, X.shape[1])) for patch_i in patch_nghs])
-    nghs = lsh.start(X, Q, float(100))
+    nghs = lsh.start(X[:100], Q, float(170))
     
-    ones = np.ones(1, X.shape[1])
+    ones = np.ones((1, X.shape[1]))
     for i in range(len(patches)):
         bottom_b_ngh = None
         top_b_ngh = None
@@ -99,10 +99,10 @@ def init(fname):
         # bottom's neighbours
         min_dist = 10000
         if not (ones == Q[j]).all():
-            for ngh in nghbs[j]:
+            for ngh in nghs[j]:
                 if F[ngh[0]][0] < F[patch_nghs[j]][0]:
                     diff = F[patch_nghs[j]][0] - F[ngh[0]][0]
-                    if min(diff, min_dist):
+                    if diff < min_dist and patch_nghs[j] != ngh[0]:
                         min_dist = diff
                         bottom_b_ngh = ngh[0]
             if not bottom_b_ngh:
@@ -112,10 +112,10 @@ def init(fname):
         j = j+1
         min_dist = 10000
         if not (ones == Q[j]).all():
-            for ngh in nghbs[j]:
+            for ngh in nghs[j]:
                 if F[ngh[0]][0] > F[patch_nghs[j]][0]:
-                    diff = F[patch_nghs[j]][0] - F[ngh[0]][0]
-                    if min(diff, min_dist):
+                    diff = F[ngh[0]][0] - F[patch_nghs[j]][0]
+                    if diff < min_dist and ngh[0] != patch_nghs[j]:
                         min_dist = diff
                         top_b_ngh = ngh[0]
             if not top_b_ngh:
@@ -125,10 +125,10 @@ def init(fname):
         j = j+1
         min_dist = 10000
         if not (ones == Q[j]).all():
-            for ngh in nghbs[j]:
+            for ngh in nghs[j]:
                 if F[ngh[0]][1] < F[patch_nghs[j]][1]:
                     diff = F[patch_nghs[j]][1] - F[ngh[0]][1]
-                    if min(diff, min_dist):
+                    if diff < min_dist and patch_nghs[j] != ngh[0] :
                         min_dist = diff
                         right_b_ngh = ngh[0]
             if not right_b_ngh:
@@ -138,10 +138,10 @@ def init(fname):
         j = j+1
         min_dist = 10000
         if not (ones == Q[j]).all():
-            for ngh in nghbs[j]:
+            for ngh in nghs[j]:
                 if F[ngh[0]][1] > F[patch_nghs[j]][1]:
-                    diff = F[patch_nghs[j]][1] - F[ngh[0]][1]
-                    if min(diff, min_dist):
+                    diff = F[ngh[0]][1] - F[patch_nghs[j]][1]
+                    if diff < min_dist and patch_nghs[j] != ngh[0]:
                         min_dist = diff
                         left_b_ngh = ngh[0]
             if not left_b_ngh:
@@ -176,6 +176,7 @@ def init(fname):
             train_img[start_x:start_x+patch_size, start_y:start_y+patch_size] += train_img[start_ngh_x:start_ngh_x+patch_size, start_ngh_y:start_ngh_y+patch_size]
         
         train_img[start_x:start_x+patch_size, start_y:start_y+patch_size] /= count
+        debug("count=%d" % count)
          
     #plt.subplot(221)
     #plt.imshow(train_img, interpolation='nearest')
