@@ -6,8 +6,6 @@ def knn_naive(k, p, X):
     #dist = X - stacked_p
     #dist = np.sqrt(dist.multiply(dist).sum(1))
     dist = []
-    for x in X:
-        dist.append(np.linalg.norm(x - p))
-    result = sorted(dist)
-    for r in result:
-        print r
+    dists = np.linalg.norm(X - p, axis = 1)
+    assert (dists.shape[0] == X.shape[0])
+    return dists
