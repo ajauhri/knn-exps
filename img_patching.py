@@ -20,9 +20,10 @@ def make_border(img, x, y, size, color, w=2):
     img[x:x+size, y + size:y+size+w] = color
 
 def init(fname):
-    random.seed(6)
+    random.seed(7)
     patch_size = 12
     bucket_size = 3
+    n_patches = 20 
     img = imread(fname)
     train_img = img.copy()
     query_img = img.copy()
@@ -33,7 +34,7 @@ def init(fname):
     (F, D) = vl_phow(train_img, sizes = [bucket_size], step = bucket_size, color = 'hsv')
     # darken some patches of images
     patches = []
-    for i in range(20):
+    for i in range(n_patches):
         while True:
             patch_i = randrange(0, F.shape[0])
             start_x = F[patch_i][1] - (bucket_size) * 2
@@ -48,7 +49,10 @@ def init(fname):
     (F, X) = vl_phow(train_img, sizes = [bucket_size], step = bucket_size, color = 'rgb')
     trimmed_width = width - 2 * ((bucket_size) * 3/2)
     limit = int(math.ceil(trimmed_width / bucket_size)) 
-    
+   
+    # very essential!!! since vl_phow returns uint8 which is problematic for calculating norms
+    X = X.astype(float)
+
     # get 4 nghs for each patch
     patch_nghs = []
     for patch_i in patches:
@@ -110,14 +114,20 @@ def init(fname):
         else:
             patch_nghs.append(-1)
             print 'not found top neighbour'
-
     res_img = train_img.copy() 
-    #res = knn_naive.knn_naive(10, X[414], X)
-    #print res 
+
     Q = np.vstack([X[patch_i] if patch_i != -1 else np.ones((1, X.shape[1])) for patch_i in patch_nghs])
-    nghs = lsh.start(X, Q, float(190))
 
     ones = np.ones((1, X.shape[1]))
+    '''
+    for q in Q:
+        if not (ones == q).all():
+            res = knn_naive.knn_naive(10, q, X)
+            print np.average(res)
+    assert(len(patch_nghs) == n_patches*4)
+    '''
+    nghs = lsh.start(X, Q, float(1000))
+
     for i in range(len(patches)):
         bottom_b_ngh = None
         top_b_ngh = None
@@ -131,7 +141,6 @@ def init(fname):
                 if F[ngh[0]][1] < F[patch_nghs[j]][1] and ngh[1] < min_dist and patch_nghs[j] != ngh[0]:
                     min_dist = ngh[1]
                     right_b_ngh = ngh[0]
-                    print ngh[0], ngh[1], 'r', i
 
         j = j+1
         min_dist = 10000
@@ -140,7 +149,6 @@ def init(fname):
                 if F[ngh[0]][1] > F[patch_nghs[j]][1] and ngh[1] < min_dist and ngh[0] != patch_nghs[j]:
                     min_dist = ngh[1]
                     left_b_ngh = ngh[0]
-                    print ngh[0], ngh[1], 'l', i
 
         j = j+1
         min_dist = 10000
@@ -149,7 +157,6 @@ def init(fname):
                 if F[ngh[0]][0] < F[patch_nghs[j]][0] and ngh[1] < min_dist and patch_nghs[j] != ngh[0] :
                     min_dist = ngh[1]
                     bottom_b_ngh = ngh[0]
-                    print ngh[0], ngh[1], 'b', i
 
 
         j = j+1
@@ -159,7 +166,6 @@ def init(fname):
                 if F[ngh[0]][0] > F[patch_nghs[j]][0] and ngh[1] < min_dist and patch_nghs[j] != ngh[0]:
                     min_dist = ngh[1]
                     top_b_ngh = ngh[0]
-                    print ngh[0], ngh[1], 't', i
          
         patch_x = F[patches[i]][1] - bucket_size * 2
         patch_y = F[patches[i]][0] - bucket_size * 2
@@ -198,7 +204,6 @@ def init(fname):
                 res_img[patch_x:patch_x+patch_size, patch_y:patch_y+patch_size] += res_img[start_ngh_x:start_ngh_x+patch_size, start_ngh_y:start_ngh_y+patch_size]
 
         res_img[patch_x:patch_x+patch_size, patch_y:patch_y+patch_size] /= count
-    
     plt.subplot(221)
     plt.imshow(res_img, interpolation='nearest')
     plt.subplot(222)
@@ -207,7 +212,7 @@ def init(fname):
     plt.imshow(query_img, interpolation='nearest')
     plt.subplot(224)
     plt.imshow(nn_img, interpolation='nearest')
-    plt.show()
+    #plt.show()
     plt.savefig("res_img.png", format="png")
    
 if __name__ == "__main__":

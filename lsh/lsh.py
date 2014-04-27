@@ -37,7 +37,7 @@ def init_lsh(params, n, X):
     uhash = lsh_helper.create_ht(1, n, nn.k)     
 
     count = 0
-    computed_hashes_of_ulshs = [[[0]*4]*X.shape[0]]*nn.l
+    computed_hashes_of_ulshs = np.zeros((nn.l, X.shape[0], 4))
     
     for i in xrange(X.shape[0]):
         sys.stdout.write("\r--->loading hashes for point %d out of %d" % (count + 1, X.shape[0]))
@@ -74,7 +74,7 @@ def init_lsh(params, n, X):
 def get_ngh_struct(nn, q):
     ##print 'query', 
     lsh_helper.construct_point(nn, nn.hashed_buckets[0], q)
-    computed_hashes_of_ulshs = eval(`[[0]*4]*nn.n_hf_tuples`)
+    computed_hashes_of_ulshs = np.zeros((nn.n_hf_tuples, 4))
     for i in xrange(nn.n_hf_tuples):
         for j in xrange(4):
             computed_hashes_of_ulshs[i][j] = np.uint32(nn.computed_hashes_of_ulshs[i][j])
@@ -164,7 +164,7 @@ def determine_coeffs(params, X):
     n = X.shape[0]
     n_suc_reps = 0 
     while n_suc_reps < 5: 
-        nn = init_lsh(params, n, X[:n,:])
+        nn = init_lsh(params, n, X)
 
         n_suc_reps = 0 
         lsh_pre_comp = 0
@@ -177,7 +177,7 @@ def determine_coeffs(params, X):
             timers.bucket_cycle_time = 0
             lsh_globals.n_dist_comps = 0
 
-            q_index = const.prng.randint(0, X[:n].shape[0] - 1)
+            q_index = const.prng.randint(0, X.shape[0] - 1)
             debug('query #%d; index #%d' % (i, q_index))
             nghs = get_ngh_struct(nn, X[q_index])
             debug('nNNs=' + str(len(nghs)))
@@ -212,8 +212,6 @@ def compute_opt(X, r):
     X = X[:n]
 
     available_mem = psutil.phymem_usage().available
-    prng = np.random.RandomState()
-    const.prng = prng
     opt_params = alg_params()
 
     ''' setup algo params''' 
@@ -303,7 +301,7 @@ def start(X, Q, r):
     opt_params.k = 20
     opt_params.m = 35 
     opt_params.l = 595 
-
+    
     nn = init_lsh(opt_params, X.shape[0], X)
     nghs = []
     ones = np.ones((1, X.shape[1]))
@@ -311,8 +309,9 @@ def start(X, Q, r):
         if not (q == ones).all():
             nghs.append(get_ngh_struct(nn, q))
             debug('NNs = %d' % (len(nghs[-1])))
+            for n in nghs[-1]:
+                debug('length = %f' % n[1])
         else:
             nghs.append([])
-    
     return nghs
 

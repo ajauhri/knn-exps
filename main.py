@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from optparse import OptionParser
+import numpy as np
 
 from naive import knn_naive
 from extras.parsers import netflix, generic
@@ -49,7 +50,8 @@ def init():
     
     #root = cover_tree.create(X)
     lsh.start(X, Q, options.r)
-    #knn_naive.knn_naive(500, X[1], X)
+    #res = knn_naive.knn_naive(500, X[0], X)
+    #print np.average(res)
     #dfs(root)
 
 if __name__ == "__main__":
