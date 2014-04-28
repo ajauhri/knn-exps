@@ -24,7 +24,7 @@ def init(fname):
     patch_size = 12
     bucket_size = 3
     step_size = 12
-    n_patches = 20 
+    n_patches = 30
     img = imread(fname)
     train_img = img.copy()
     query_img = img.copy()
@@ -50,8 +50,6 @@ def init(fname):
     (F, X) = vl_phow(train_img, sizes = [bucket_size], step = step_size, color = 'rgb')
     trimmed_width = width - 2 * ((step_size) * 1/4)
     limit = int(math.ceil(trimmed_width / step_size)) 
-    print F[:limit,:2] 
-    print F[limit: 2*limit, :2]
     # necessary since vl_phow returns uint8 which is problematic for calculating norms
     X = X.astype(float)
 
@@ -128,8 +126,7 @@ def init(fname):
             print np.average(res)
     assert(len(patch_nghs) == n_patches*4)
     '''
-
-    nghs = lsh.start(X, Q, float(850))
+    nghs = lsh.start(X, Q, float(750))
     for i in range(len(patches)):
         bottom_b_ngh = None
         top_b_ngh = None
@@ -140,33 +137,39 @@ def init(fname):
         min_angle = 3*np.pi 
         if not (ones == Q[j]).all():
             for ngh in nghs[j]:
-                d_y = F[patch_nghs[j]][1] - F[ngh[0]][1]
-                d_x = F[patch_nghs[j]][0] - F[ngh[0]][0]
-                ang = np.arctan2(d_y, d_x)
-                if F[ngh[0]][0] < F[patch_nghs[j]][0] and np.fabs(np.pi - ang) < min_angle and patch_nghs[j] != ngh[0]:
-                    min_angle = np.abs(np.pi - ang)
+                d_y = F[ngh[0]][1] - F[patch_nghs[j]][1] 
+                d_x = F[ngh[0]][0] - F[patch_nghs[j]][0] 
+                ang = np.pi - np.fabs(np.arctan2(d_y, d_x))
+                if F[ngh[0]][0] < F[patch_nghs[j]][0] and ang < min_angle and patch_nghs[j] != ngh[0]:
+                    print F[ngh[0]][0], F[ngh[0]][1], F[patch_nghs[j]][0], F[patch_nghs[j]][1], ang
+                    assert (ang <= np.pi/2) 
+                    min_angle = ang
                     right_b_ngh = (ngh[0], min_angle)
 
         j = j+1
         min_angle = 3*np.pi 
         if not (ones == Q[j]).all():
             for ngh in nghs[j]:
-                d_y = F[patch_nghs[j]][1] - F[ngh[0]][1]
-                d_x = F[patch_nghs[j]][0] - F[ngh[0]][0]
-                ang = np.arctan2(d_y, d_x)
-                if F[ngh[0]][0] > F[patch_nghs[j]][0] and np.fabs(ang) < min_angle and ngh[0] != patch_nghs[j]:
-                    min_angle = np.fabs(ang)
+                d_y = F[ngh[0]][1] - F[patch_nghs[j]][1] 
+                d_x = F[ngh[0]][0] - F[patch_nghs[j]][0] 
+                ang = np.fabs(np.arctan2(d_y, d_x))
+                if F[ngh[0]][0] > F[patch_nghs[j]][0] and ang < min_angle and ngh[0] != patch_nghs[j]:
+                    print F[ngh[0]][0], F[ngh[0]][1], F[patch_nghs[j]][0], F[patch_nghs[j]][1], ang
+                    assert (ang <= np.pi/2) 
+                    min_angle = ang
                     left_b_ngh = (ngh[0], min_angle)
 
         j = j+1
         min_angle = 3*np.pi 
         if not (ones == Q[j]).all():
             for ngh in nghs[j]:
-                d_y = F[patch_nghs[j]][1] - F[ngh[0]][1]
-                d_x = F[patch_nghs[j]][0] - F[ngh[0]][0]
-                ang = np.arctan2(d_y, d_x)
-                if F[ngh[0]][1] < F[patch_nghs[j]][1] and np.fabs(np.pi/2 - ang) < min_angle and patch_nghs[j] != ngh[0] :
-                    min_angle = np.fabs(np.pi/2 - ang)
+                d_y = F[patch_nghs[j]][1] - F[ngh[0]][1] 
+                d_x = F[ngh[0]][0] - F[patch_nghs[j]][0] 
+                ang = np.fabs(np.pi/2 - np.arctan2(d_y, d_x))
+                if F[ngh[0]][1] < F[patch_nghs[j]][1] and ang < min_angle and patch_nghs[j] != ngh[0] :
+                    print F[ngh[0]][0], F[ngh[0]][1], F[patch_nghs[j]][0], F[patch_nghs[j]][1], ang
+                    assert (ang <= np.pi/2) 
+                    min_angle = ang
                     bottom_b_ngh = (ngh[0], min_angle)
 
         j = j+1
@@ -174,14 +177,16 @@ def init(fname):
         if not (ones == Q[j]).all():
             for ngh in nghs[j]:
                 d_y = F[patch_nghs[j]][1] - F[ngh[0]][1]
-                d_x = F[patch_nghs[j]][0] - F[ngh[0]][0]
-                ang = np.arctan2(d_y, d_x)
-                if F[ngh[0]][1] > F[patch_nghs[j]][1] and np.fabs((np.pi*3/2) - ang) < min_angle and patch_nghs[j] != ngh[0]:
-                    min_angle = np.fabs((np.pi*3/2) - ang)
+                d_x = F[patch_nghs[j]][0] - F[ngh[0]][0] 
+                ang = np.fabs(np.pi/2 + np.arctan2(d_y, d_x)) # note that the arctan2 will for nghs of the top query range between 0 and -\pi (for the valid ones)
+                if F[ngh[0]][1] > F[patch_nghs[j]][1] and ang < min_angle and patch_nghs[j] != ngh[0]:
+                    print F[ngh[0]][0], F[ngh[0]][1], F[patch_nghs[j]][0], F[patch_nghs[j]][1], ang
+                    assert (ang <= np.pi/2)
+                    min_angle = ang
                     top_b_ngh = (ngh[0], min_angle)
          
          
-        nn_img = train_img.copy()
+        #nn_img = train_img.copy()
         patch_x = F[patches[i]][1] - bucket_size * 2
         patch_y = F[patches[i]][0] - bucket_size * 2
         best_ngh = (-1, 0)
@@ -226,19 +231,8 @@ def init(fname):
             start_ngh_y = F[best_ngh[0]][0] - bucket_size * 2
             res_img[patch_x:patch_x+patch_size, patch_y:patch_y+patch_size] = res_img[start_ngh_x:start_ngh_x+patch_size, start_ngh_y:start_ngh_y+patch_size]
             #make_border(nn_img, start_ngh_x, start_ngh_y, patch_size, [247, 247, 347])
-            make_border(nn_img, patch_x, patch_y, patch_size, [175, 1, 1])
+            #make_border(nn_img, patch_x, patch_y, patch_size, [175, 1, 1])
 
-
-            plt.subplot(221)
-            plt.imshow(res_img, interpolation='nearest')
-            plt.subplot(222)
-            plt.imshow(train_img, interpolation='nearest')
-            plt.subplot(223)
-            plt.imshow(query_img, interpolation='nearest')
-            plt.subplot(224)
-            plt.imshow(nn_img, interpolation='nearest')
-            plt.show()
-    '''
     plt.subplot(221)
     plt.imshow(res_img, interpolation='nearest')
     plt.subplot(222)
@@ -247,9 +241,8 @@ def init(fname):
     plt.imshow(query_img, interpolation='nearest')
     plt.subplot(224)
     plt.imshow(nn_img, interpolation='nearest')
-    #plt.show()
+    plt.show()
     plt.savefig("res_img.png", format="png")
-    '''
    
 if __name__ == "__main__":
     init(sys.argv[1])
