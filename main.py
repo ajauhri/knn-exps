@@ -52,9 +52,7 @@ def init():
     ''' 
     root = cover_tree.create(X)
     #lsh.start(X, Q, options.r)
-    #res = knn_naive.knn_naive(500, X[0], X)
-    #print np.average(res)
-    #cover_tree.dfs(root)
+        #cover_tree.dfs(root)
     ct_timings = []
     sizes = []
     for i in range(10,800,20):
@@ -63,8 +61,10 @@ def init():
         end = time.time() - start
         ct_timings.append(end/100)
         sizes.append(i)
-    '''
-    print X.shape
+   '''
+    res = knn_naive.knn_naive(500, X[0], X)
+    print np.average(res)
+
 if __name__ == "__main__":
     init()
 
