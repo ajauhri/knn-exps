@@ -2,6 +2,7 @@
 
 from optparse import OptionParser
 import numpy as np
+import time
 
 from naive import knn_naive
 from extras.parsers import netflix, generic
@@ -25,6 +26,7 @@ def init():
     if options.netflix:
         debug('running with netflix...')
         D = netflix(options.tfile)
+        print D.shape
         X = D[:options.i]
         if not options.qfile:
             Q = D[:options.j]
@@ -47,13 +49,22 @@ def init():
             Q = generic(options.qfile)[:options.j]
     else:
         debug('data format not specified')
-    
-    #root = cover_tree.create(X)
-    lsh.start(X, Q, options.r)
+    ''' 
+    root = cover_tree.create(X)
+    #lsh.start(X, Q, options.r)
     #res = knn_naive.knn_naive(500, X[0], X)
     #print np.average(res)
-    #dfs(root)
-
+    #cover_tree.dfs(root)
+    ct_timings = []
+    sizes = []
+    for i in range(10,800,20):
+        start = time.time()
+        _ = [cover_tree.knn(i, Q[0], root) for j in range(100)]
+        end = time.time() - start
+        ct_timings.append(end/100)
+        sizes.append(i)
+    '''
+    print X.shape
 if __name__ == "__main__":
     init()
 

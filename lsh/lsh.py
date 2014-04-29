@@ -289,9 +289,9 @@ def start(X, Q, r):
     const.prng = prng
 
     # determine the optimal values for `k` `m` and `l`
-    #opt_params = compute_opt(X, r) 
-
-    ''' setup algo params''' 
+    opt_params = compute_opt(X, r) 
+    '''
+    ''' setup algo params for pics''' 
     opt_params = alg_params()
     opt_params.success_pr = const.success_pr
     opt_params.w = const.w
@@ -311,5 +311,9 @@ def start(X, Q, r):
             debug('NNs = %d' % (len(nghs[-1])))
         else:
             nghs.append([])
+    '''
+    #nn = init_lsh(opt_params, X.shape[0], X)
+
+
     return (nn, nghs)
 

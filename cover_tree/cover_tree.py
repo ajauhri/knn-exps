@@ -57,7 +57,7 @@ def knn(k, p, root):
     for scale in reversed(xrange(root.min_scale, root.max_scale + 1)):
         helper.get_children(p, Q_p_ds, scale)
         Q_p_ds = sorted(Q_p_ds, key=attrgetter('dist'))
-        d_p_Q_k = Q_p_ds[k-1].dist
+        d_p_Q_k = Q_p_ds[-1].dist
 
         Q_p_ds = [elem for elem in Q_p_ds if elem.dist <= d_p_Q_k + const.base**scale]
 
