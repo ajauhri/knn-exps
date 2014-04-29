@@ -230,7 +230,7 @@ def compute_opt(X, r):
     u_hash_comp = 0
     dist_comp = 0
 
-    n_reps = 2
+    n_reps = 5
     '''determine coefficients for efficient computation '''
     for i in range(n_reps):
         timing_r = determine_coeffs(opt_params, X) #will modify opt_params.r if need so
@@ -264,9 +264,9 @@ def compute_opt(X, r):
         else:
             is_sparse = False
 
-        for i in range(50):
+        for i in range(100):
             collisions += estimate_collisions(X.shape[0], X.shape[1], X, i, k, m, r, is_sparse) 
-        collisions /= 50 
+        collisions /= 100
         cycling_time = collisions * dist_comp
         if best_k == 0 or (lsh_time + uh_time + cycling_time) < best_time:
             best_k = k
@@ -289,9 +289,10 @@ def start(X, Q, r):
     const.prng = prng
 
     # determine the optimal values for `k` `m` and `l`
-    #opt_params = compute_opt(X, r) 
+    opt_params = compute_opt(X, r) 
 
     ''' setup algo params''' 
+    '''
     opt_params = alg_params()
     opt_params.success_pr = const.success_pr
     opt_params.w = const.w
@@ -301,15 +302,6 @@ def start(X, Q, r):
     opt_params.k = 20
     opt_params.m = 35 
     opt_params.l = 595 
-    
+    ''' 
     nn = init_lsh(opt_params, X.shape[0], X)
-    nghs = []
-    ones = np.ones((1, X.shape[1]))
-    for q in Q:
-        if not (q == ones).all():
-            nghs.append(get_ngh_struct(nn, q))
-            debug('NNs = %d' % (len(nghs[-1])))
-        else:
-            nghs.append([])
     return (nn, nghs)
-

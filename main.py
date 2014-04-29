@@ -38,7 +38,6 @@ def init():
     # generic block #
     elif options.generic:
         debug('running with generic dataset...')
-        
         D = generic(options.tfile)
         X = D[:options.i]
         if not options.qfile:
@@ -47,12 +46,13 @@ def init():
             Q = generic(options.qfile)[:options.j]
     else:
         debug('data format not specified')
-    
+    print 'here', options.i, options.j
     #root = cover_tree.create(X)
     lsh.start(X, Q, options.r)
     #res = knn_naive.knn_naive(500, X[0], X)
-    #print np.average(res)
+    #print np.max(res)
     #dfs(root)
+    print X.shape
 
 if __name__ == "__main__":
     init()
