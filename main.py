@@ -48,31 +48,41 @@ def init():
             Q = generic(options.qfile)[:options.j]
     else:
         debug('data format not specified')
-<<<<<<< HEAD
-    ''' 
-    root = cover_tree.create(X)
-    #lsh.start(X, Q, options.r)
-        #cover_tree.dfs(root)
-    ct_timings = []
-    sizes = []
-    for i in range(10,800,20):
-        start = time.time()
-        _ = [cover_tree.knn(i, Q[0], root) for j in range(100)]
-        end = time.time() - start
-        ct_timings.append(end/100)
-        sizes.append(i)
-   '''
-    res = knn_naive.knn_naive(500, X[0], X)
-    print np.average(res)
-=======
-    print 'here', options.i, options.j
+    
     #root = cover_tree.create(X)
-    lsh.start(X, Q, options.r)
-    #res = knn_naive.knn_naive(500, X[0], X)
-    #print np.max(res)
-    #dfs(root)
-    print X.shape
->>>>>>> 3af816aa6e80beb35b55c732096c281996603d9d
+    #nn = lsh.start(X, Q, options.r)
+    #cover_tree.dfs(root)
+    
+    ct_timings = []
+    lsh_timings = []
+    sizes = []
+    n_nghs = 5
+    for s in range(500, options.i, 1000):
+        root = cover_tree.create(X[:s])
+        ct_tot_t = 0
+        lsh_tot_t = 0
+        for q in Q:
+            debug('querying cover tree')
+            start = time.time()
+            for j in range(100):
+                nghs = cover_tree.knn(n_nghs, q, root)
+            ct_tot_t += (time.time() - start) / 100
+            root = None
+            
+            # use the distance from cover tree to initialize lsh
+            nn = lsh.start(X[:s], Q, nghs[-1].dist)
+            
+            debug('querying LSH')
+            start = time.time()
+            for j in range(100):
+                nghs = lsh.get_ngh_struct(nn, q)
+            lsh_tot_t += (time.time() - start) / 100
+            nghs = None
+            nn = None
+
+        ct_timings.append(ct_tot_t/Q.shape[0])
+        lsh_timings.append(lsh_tot_t/Q.shape[0])
+        sizes.append(s)
 
 if __name__ == "__main__":
     init()
