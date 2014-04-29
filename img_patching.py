@@ -20,7 +20,7 @@ def make_border(img, x, y, size, color, w=2):
     img[x:x+size, y + size:y+size+w] = color
 
 def init(fname):
-    random.seed(8)
+    random.seed(9)
     patch_size = 12
     bucket_size = 3
     step_size = 12
@@ -241,7 +241,7 @@ def init(fname):
     plt.imshow(query_img, interpolation='nearest')
     plt.subplot(224)
     plt.imshow(nn_img, interpolation='nearest')
-    plt.show()
+    #plt.show()
     plt.savefig("res_img.png", format="png")
    
 if __name__ == "__main__":

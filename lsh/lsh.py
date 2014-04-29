@@ -309,9 +309,7 @@ def start(X, Q, r):
         if not (q == ones).all():
             nghs.append(get_ngh_struct(nn, q))
             debug('NNs = %d' % (len(nghs[-1])))
-            for n in nghs[-1]:
-                debug('length = %f' % n[1])
         else:
             nghs.append([])
-    return nghs
+    return (nn, nghs)
 
