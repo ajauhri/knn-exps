@@ -284,10 +284,11 @@ def compute_opt(X, r):
     #res = {'k' : best_k, 'm' : m, 'l' : l}
     return opt_params
 
-def start(X, Q, r):
+def seed():
     prng = np.random.RandomState()
     const.prng = prng
 
+def start(X, Q, r):
     # determine the optimal values for `k` `m` and `l`
     #opt_params = compute_opt(X, r) 
     ''' setup algo params for pics''' 

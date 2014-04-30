@@ -55,34 +55,44 @@ def init():
     
     ct_timings = []
     lsh_timings = []
-    sizes = []
     n_nghs = 5
-    for s in range(500, options.i, 1000):
+    lsh.seed()
+    out = open('sparse.txt', 'w')
+    sizes = [1000, 50000, 100000, 200000, 480000]
+    for s in sizes:
         root = cover_tree.create(X[:s])
         ct_tot_t = 0
         lsh_tot_t = 0
         for q in Q:
             debug('querying cover tree')
             start = time.time()
-            for j in range(100):
+            for j in range(10):
                 nghs = cover_tree.knn(n_nghs, q, root)
-            ct_tot_t += (time.time() - start) / 100
-            root = None
+            ct_tot_t += (time.time() - start) / 10
             
             # use the distance from cover tree to initialize lsh
             nn = lsh.start(X[:s], Q, nghs[-1].dist)
             
             debug('querying LSH')
             start = time.time()
-            for j in range(100):
+            for j in range(10):
                 nghs = lsh.get_ngh_struct(nn, q)
-            lsh_tot_t += (time.time() - start) / 100
+            lsh_tot_t += (time.time() - start) / 10
             nghs = None
             nn = None
-
+        out.write("%f,%f,%f\n" % (ct_tot_t/Q.shape[0], lsh_tot_t/Q.shape[0], s))
         ct_timings.append(ct_tot_t/Q.shape[0])
         lsh_timings.append(lsh_tot_t/Q.shape[0])
-        sizes.append(s)
+    out.close()
+    plt.plot(sizes, ct_timings)
+    plt.plot(sizes, ct_timings,'y--o', markersize=8)
+    plt.plot(sizes, lsh_timings,'r--o', markersize=8)
+    plt.legend(['Cover Trees','E2LSH'])
+    plt.xlabel('Training set size', fontsize=18)
+    plt.ylabel('Avg. Query Time (secs)', fontsize=18)
+    plt.savefig('sparse.eps', format='eps', dpi=1000)
+
+        
 
 if __name__ == "__main__":
     init()
