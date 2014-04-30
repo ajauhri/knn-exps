@@ -84,7 +84,10 @@ def create(X):
     root.min_scale = root.max_scale
     debug('cover tree initilization with data started')
     for i in xrange(1, X.shape[0]):
+        sys.stdout.write("\r--->inserting point %d out of %d" % (i + 1, X.shape[0]))
         insert(X[i], root, root.max_scale)
+        sys.stdout.flush()
+    print
     debug('insertion done')
     return root    
 

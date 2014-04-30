@@ -57,8 +57,8 @@ def init():
     lsh_timings = []
     n_nghs = 5
     lsh.seed()
-    out = open('sparse.txt', 'w')
-    sizes = [1000, 50000, 100000, 200000, 480000]
+    out = open('dense.txt', 'w')
+    sizes = [1000, 10000, 20000, 40000, 60000]
     for s in sizes:
         root = cover_tree.create(X[:s])
         ct_tot_t = 0
@@ -90,7 +90,7 @@ def init():
     plt.legend(['Cover Trees','E2LSH'])
     plt.xlabel('Training set size', fontsize=18)
     plt.ylabel('Avg. Query Time (secs)', fontsize=18)
-    plt.savefig('sparse.eps', format='eps', dpi=1000)
+    plt.savefig('dense.eps', format='eps', dpi=1000)
 
         
 
