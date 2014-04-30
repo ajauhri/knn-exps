@@ -19,10 +19,10 @@ def make_border(img, x, y, size, color, w=2):
     img[x+size:x + size+w, y:y+size] = color
     img[x:x+size, y + size:y+size+w] = color
  
-def get_best_ngh(nghs, patch_ngh, q):
+def get_best_ngh(nghs, patch_ngh):
     best_ngh = None
     min_dist = 10000
-    if (1 == q).all():
+    if patch_ngh == -1:
         return None
     else:
         for ngh in nghs:
@@ -36,7 +36,7 @@ def init(fname):
     patch_size = 12
     bucket_size = 3
     step_size = 12
-    n_patches = 30
+    n_patches = 20 #30
     img = imread(fname)
     train_img = img.copy()
     query_img = img.copy()
@@ -135,7 +135,8 @@ def init(fname):
             print np.average(res)
     assert(len(patch_nghs) == n_patches*4)
     '''
-    (nn, nghs) = lsh.start(X, Q, float(770))
+    lsh.seed()
+    (nn, nghs) = lsh.start(X, Q, float(750))
      
     for i in range(len(patches)):
         bottom_b_ngh = None
@@ -147,16 +148,16 @@ def init(fname):
         patch_y = F[patches[i]][0] - bucket_size * 2
 
         j = i*4
-        right_b_ngh = get_best_ngh(nghs[j], patch_nghs[j], Q[j])
+        right_b_ngh = get_best_ngh(nghs[j], patch_nghs[j])
         
         j = j+1
-        left_b_ngh = get_best_ngh(nghs[j], patch_nghs[j], Q[j])
+        left_b_ngh = get_best_ngh(nghs[j], patch_nghs[j])
 
         j = j+1
-        bottom_b_ngh = get_best_ngh(nghs[j], patch_nghs[j], Q[j])
+        bottom_b_ngh = get_best_ngh(nghs[j], patch_nghs[j])
 
         j = j+1
-        top_b_ngh = get_best_ngh(nghs[j], patch_nghs[j], Q[j])
+        top_b_ngh = get_best_ngh(nghs[j], patch_nghs[j])
          
         assert ((res_img[patch_x:patch_x+patch_size, patch_y:patch_y+patch_size] == 0).all() == True)
         
@@ -164,56 +165,72 @@ def init(fname):
             return t[-1]
         
         def valid(k):
-            start_ngh_x = F[k[0]][1] - bucket_size * 2
-            start_ngh_y = F[k[0]][0] - bucket_size * 2
-            if k[0] not in patches and start_ngh_x > 0 and (start_ngh_x + patch_size) < res_img.shape[0] and start_ngh_y > 0 and (start_ngh_y + patch_size) < res_img.shape[1]:
+            if k >= F.shape[0]:
+                return False
+
+            start_ngh_x = F[k][1] - bucket_size * 2
+            start_ngh_y = F[k][0] - bucket_size * 2
+            if k not in patches and start_ngh_x > 0 and (start_ngh_x + patch_size) < res_img.shape[0] and start_ngh_y > 0 and (start_ngh_y + patch_size) < res_img.shape[1]:
                 return True
             else:
                 return False
         
         best_ngh = (-1, 0)
+        j = i*4
         if right_b_ngh:
-            right_b_ngh = (right_b_ngh[0] - limit, right_b_ngh[1])
-            n = lsh.get_ngh_struct(nn, X[right_b_ngh[0]])[1:]
-            if len(n) > 1:
-                n = sorted(n, key=dist)
-                for k in n:
-                    if (best_ngh[0] == -1 or k[1] < best_ngh[1]) and valid(k):
-                        best_ngh = k
-                        break
+            if valid(right_b_ngh[0] - limit):
+                right_b_ngh = (right_b_ngh[0] - limit, 
+                               np.linalg.norm(X[right_b_ngh[0] - limit] - X[patch_nghs[j]]))
+                best_ngh = right_b_ngh
+            elif valid(right_b_ngh[0] + limit):
+                right_b_ngh = (right_b_ngh[0] + limit, 
+                               np.linalg.norm(X[right_b_ngh[0] + limit] - X[patch_nghs[j]]))
+                best_ngh = right_b_ngh
 
+        j = j + 1
         if left_b_ngh:
-            left_b_ngh = (left_b_ngh[0] + limit, left_b_ngh[1])
-            n = lsh.get_ngh_struct(nn, X[left_b_ngh[0]])[1:]
-            if len(n) > 1:
-                n = sorted(n, key=dist)
-                for k in n:
-                    if (best_ngh[0] == -1 or k[1] < best_ngh[1]) and valid(k):
-                        best_ngh = k
-                        break
-
+            if valid(left_b_ngh[0] + limit):
+                left_b_ngh = (left_b_ngh[0] + limit, 
+                              np.linalg.norm(X[left_b_ngh[0] + limit] - X[patch_nghs[j]]))
+                if best_ngh[0] == -1 or left_b_ngh[1] < best_ngh[1]:
+                    best_ngh = left_b_ngh
+            elif valid(left_b_ngh[0] - limit):
+                left_b_ngh = (left_b_ngh[0] - limit, 
+                              np.linalg.norm(X[left_b_ngh[0] - limit] - X[patch_nghs[j]]))
+                if best_ngh[0] == -1 or left_b_ngh[1] < best_ngh[1]:
+                    best_ngh = left_b_ngh
+                   
+        j = j + 1
         if bottom_b_ngh:
-            bottom_b_ngh = (bottom_b_ngh[0] - 1, bottom_b_ngh[1])
-            n = lsh.get_ngh_struct(nn, X[bottom_b_ngh[0]])[1:]
-            if len(n) > 1:
-                n = sorted(n, key=dist)
-                for k in n:
-                    if (best_ngh[0] == -1 or k[1] < best_ngh[1]) and valid(k):
-                        best_ngh = k
-                        break
+            if valid(bottom_b_ngh[0] - 1):
+                bottom_b_ngh = (bottom_b_ngh[0] - 1, 
+                                np.linalg.norm(X[bottom_b_ngh[0] - 1] - X[patch_nghs[j]]))
+                if best_ngh[0] == -1 or bottom_b_ngh[1] < best_ngh[1]:
+                    best_ngh = bottom_b_ngh
+            elif valid(bottom_b_ngh[0] + 1):
+                bottom_b_ngh = (bottom_b_ngh[0] + 1,
+                                np.linalg.norm(X[bottom_b_ngh[0] + 1] - X[patch_nghs[j]]))
 
+                if best_ngh[0] == -1 or bottom_b_ngh[1] < best_ngh[1]:
+                    best_ngh = bottom_b_ngh
+
+        j = j + 1
         if top_b_ngh:
-            top_b_ngh = (top_b_ngh[0] + 1, top_b_ngh[1])
-            n = lsh.get_ngh_struct(nn, X[top_b_ngh[0]])[1:]
-            if len(n) > 1:
-                n = sorted(n, key=dist)
-                for k in n:
-                    if (best_ngh[0] == -1 or k[1] < best_ngh[1]) and valid(k):
-                        best_ngh = k
-                        break
+            if valid(top_b_ngh[0] + 1):
+                top_b_ngh = (top_b_ngh[0] + 1, 
+                             np.linalg.norm(X[top_b_ngh[0] + 1] - X[patch_nghs[j]]))
+                if best_ngh[0] == -1 or top_b_ngh[1] < best_ngh[1]:
+                    best_ngh = top_b_ngh
+            elif valid(top_b_ngh[0] - 1):
+                top_b_ngh = (top_b_ngh[0] - 1,
+                             np.linalg.norm(X[top_b_ngh[0] - 1] - X[patch_nghs[j]]))
+                if best_ngh[0] == -1 or top_b_ngh[1] < best_ngh[1]:
+                    best_ngh = top_b_ngh
         
+
         start_ngh_x = F[best_ngh[0]][1] - bucket_size * 2
         start_ngh_y = F[best_ngh[0]][0] - bucket_size * 2
+        
         res_img[patch_x:patch_x+patch_size, patch_y:patch_y+patch_size] = train_img[start_ngh_x:start_ngh_x+patch_size, start_ngh_y:start_ngh_y+patch_size]
 
     plt.subplot(221)

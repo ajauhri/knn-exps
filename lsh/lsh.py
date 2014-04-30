@@ -304,16 +304,13 @@ def start(X, Q, r):
 
     nn = init_lsh(opt_params, X.shape[0], X)
         
-    '''
     nghs = []
-    ones = np.ones((1, X.shape[1]))
     for q in Q:
-        if not (q == ones).all():
+        if not (q == 1).all():
             nghs.append(get_ngh_struct(nn, q))
             debug('NNs = %d' % (len(nghs[-1])))
         else:
             nghs.append([])
-    '''
-    #return (nn, nghs)
-    return nn
+    return (nn, nghs)
+    #return nn
 
