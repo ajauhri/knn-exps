@@ -53,28 +53,34 @@ def init():
     #root = cover_tree.create(X)
     #nn = lsh.start(X, Q, options.r)
     #cover_tree.dfs(root)
-    collect_timings(X, Q)
+    #collect_timings(X, Q)
+    do_profiling(X)
 
 def do_profiling(X):
     n_nghs = 5
     lsh.seed()
     out = open('dense_mem.txt', 'w')
-    sizes = [1000, 10000, 20000, 40000, 60000]
-    for s in sizes[0]:
-        h = hpy()
+    ct_size = 0
+    lsh_size = 0
+    sizes = [1000, 5000, 10000, 20000, 40000, 60000]
+    h = hpy()
+    for s in sizes:
         h.setrelheap()
         root = cover_tree.create(X[:s])
-        out.write(h.heap())
+        ct_size = h.heap().indisize
+        
         debug('querying cover tree')
         nghs = cover_tree.knn(n_nghs, X[0], root)
         
         # use the distance from cover tree to initialize lsh
         h.setrelheap()
         nn = lsh.start(X[:s], nghs[-1].dist)
-        out.write(h.heap())
+        lsh_size = h.heap().indisize
+        out.write("%f, %f, %f\n" % (ct_size, lsh_size, s))
         del nghs 
         del root
         del nn
+        out.flush()
     out.close()
     
 

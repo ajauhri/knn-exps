@@ -6,6 +6,9 @@ This is an implementation and a comparitive study of nearest-neighbour algorithm
 Dependencies
 ---
 * [psutil](http://code.google.com/p/psutil/) 
+* numpy v1.8.1
+* [vlfeat](https://github.com/dougalsutherland/vlfeat-ctypes) 
+* [guppy](https://pypi.python.org/pypi/guppy/0.1.9) for memory profiling 
 
 References
 ----
