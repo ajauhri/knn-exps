@@ -182,10 +182,12 @@ def init(fname):
                 right_b_ngh = (right_b_ngh[0] - limit, 
                                np.linalg.norm(X[right_b_ngh[0] - limit] - X[patch_nghs[j]]))
                 best_ngh = right_b_ngh
+                print 'r1'
             elif valid(right_b_ngh[0] + limit):
                 right_b_ngh = (right_b_ngh[0] + limit, 
                                np.linalg.norm(X[right_b_ngh[0] + limit] - X[patch_nghs[j]]))
                 best_ngh = right_b_ngh
+                print 'r2'
 
         j = j + 1
         if left_b_ngh:
@@ -194,11 +196,13 @@ def init(fname):
                               np.linalg.norm(X[left_b_ngh[0] + limit] - X[patch_nghs[j]]))
                 if best_ngh[0] == -1 or left_b_ngh[1] < best_ngh[1]:
                     best_ngh = left_b_ngh
+                print' l1'
             elif valid(left_b_ngh[0] - limit):
                 left_b_ngh = (left_b_ngh[0] - limit, 
                               np.linalg.norm(X[left_b_ngh[0] - limit] - X[patch_nghs[j]]))
                 if best_ngh[0] == -1 or left_b_ngh[1] < best_ngh[1]:
                     best_ngh = left_b_ngh
+                print 'l2'
                    
         j = j + 1
         if bottom_b_ngh:
@@ -207,12 +211,14 @@ def init(fname):
                                 np.linalg.norm(X[bottom_b_ngh[0] - 1] - X[patch_nghs[j]]))
                 if best_ngh[0] == -1 or bottom_b_ngh[1] < best_ngh[1]:
                     best_ngh = bottom_b_ngh
+                print 'b1'
             elif valid(bottom_b_ngh[0] + 1):
                 bottom_b_ngh = (bottom_b_ngh[0] + 1,
                                 np.linalg.norm(X[bottom_b_ngh[0] + 1] - X[patch_nghs[j]]))
 
                 if best_ngh[0] == -1 or bottom_b_ngh[1] < best_ngh[1]:
                     best_ngh = bottom_b_ngh
+                print 'b2'
 
         j = j + 1
         if top_b_ngh:
@@ -221,16 +227,18 @@ def init(fname):
                              np.linalg.norm(X[top_b_ngh[0] + 1] - X[patch_nghs[j]]))
                 if best_ngh[0] == -1 or top_b_ngh[1] < best_ngh[1]:
                     best_ngh = top_b_ngh
+                print 't1'
             elif valid(top_b_ngh[0] - 1):
                 top_b_ngh = (top_b_ngh[0] - 1,
                              np.linalg.norm(X[top_b_ngh[0] - 1] - X[patch_nghs[j]]))
                 if best_ngh[0] == -1 or top_b_ngh[1] < best_ngh[1]:
                     best_ngh = top_b_ngh
+                print 't2'
         
 
         start_ngh_x = F[best_ngh[0]][1] - bucket_size * 2
         start_ngh_y = F[best_ngh[0]][0] - bucket_size * 2
-        
+        print '***' 
         res_img[patch_x:patch_x+patch_size, patch_y:patch_y+patch_size] = train_img[start_ngh_x:start_ngh_x+patch_size, start_ngh_y:start_ngh_y+patch_size]
 
     plt.subplot(221)

@@ -67,7 +67,7 @@ def init_lsh(params, n, X):
         uhash.points = 0
         uhash.buckets = 0
         sys.stdout.flush()
-        
+    print 
     return nn
 
 
@@ -288,10 +288,12 @@ def seed():
     prng = np.random.RandomState()
     const.prng = prng
 
-def start(X, Q, r):
+def start(X, r):
     # determine the optimal values for `k` `m` and `l`
     #opt_params = compute_opt(X, r) 
-    ''' setup algo params for pics''' 
+
+    ''' opt params for image patching and netflix data''' 
+    '''
     opt_params = alg_params()
     opt_params.success_pr = const.success_pr
     opt_params.w = const.w
@@ -301,9 +303,21 @@ def start(X, Q, r):
     opt_params.k = 20
     opt_params.m = 35 
     opt_params.l = 595 
+    '''
+
+    ''' opt params for dense dataset (mnist.data)''' 
+    opt_params = alg_params()
+    opt_params.success_pr = const.success_pr
+    opt_params.w = const.w
+    opt_params.type_ht = const.HYBRID
+    opt_params.d = X.shape[1]
+    opt_params.r = r
+    opt_params.k = 4
+    opt_params.m = 5
+    opt_params.l = 10
 
     nn = init_lsh(opt_params, X.shape[0], X)
-        
+    '''    
     nghs = []
     for q in Q:
         if not (q == 1).all():
@@ -311,6 +325,7 @@ def start(X, Q, r):
             debug('NNs = %d' % (len(nghs[-1])))
         else:
             nghs.append([])
-    return (nn, nghs)
-    #return nn
+    #return (nn, nghs)
+    '''
+    return nn
 
