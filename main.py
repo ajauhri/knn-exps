@@ -19,7 +19,6 @@ def init():
     parser.add_option("-i", "--ntrains", dest="i", help="#of trainings in training file to be included", type="int")
     parser.add_option("-j", "--nquerys", dest="j", help="#of queries in query file to be included", type="int")
     parser.add_option("-n", "--netflix", dest="netflix", help="run with netflix data", action='store_true')
-    parser.add_option("-s", "--stackex", dest="stackex", help="run with stackexchange data", action='store_true')
     parser.add_option("-g", "--generic", dest="generic", help="run with generic", action='store_true')
     (options, args) = parser.parse_args()
 
@@ -33,10 +32,6 @@ def init():
             Q = D[:options.j]
         else:
             Q = netflix(options.qfile)[:options.j]
-
-    # stackoverflow block #
-    elif options.stackex:
-        debug('running with stackoverflow...')
 
     # generic block #
     elif options.generic:
@@ -60,6 +55,7 @@ def init():
     
     lsh.seed() 
     nn = lsh.start(X, options.r) #default r=0.6
+    debug('querying lsh')
     for i in range(Q.shape[0]):
         nghs = lsh.get_ngh_struct(nn, Q[i])
         debug("NNs for query %d returned %d neighbours \n" % (i, len(nghs)))
