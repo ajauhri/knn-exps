@@ -21,10 +21,12 @@ def init():
     parser.add_option("-n", "--netflix", dest="netflix", help="run with netflix data", action='store_true')
     parser.add_option("-g", "--generic", dest="generic", help="run with generic", action='store_true')
     (options, args) = parser.parse_args()
-
+    
+    t = 0
     # netflix block #
     if options.netflix:
         debug('running with netflix...')
+        t = 0
         D = netflix(options.tfile)
         print D.shape
         X = D[:options.i]
@@ -35,6 +37,7 @@ def init():
 
     # generic block #
     elif options.generic:
+        t = 1
         debug('running with generic dataset...')
         D = generic(options.tfile)
         X = D[:options.i]
@@ -53,8 +56,11 @@ def init():
         for n in nghs:
             debug("NN at dist=%f\n" % (n.dist))
     
+    #avg = np.average(knn_naive.knn_naive(10, Q[0], X))
+    #print avg
+
     lsh.seed() 
-    nn = lsh.start(X, options.r) #default r=0.6
+    nn = lsh.start(X, options.r)
     debug('querying lsh')
     for i in range(Q.shape[0]):
         nghs = lsh.get_ngh_struct(nn, Q[i])

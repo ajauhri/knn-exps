@@ -14,17 +14,17 @@ Testing
 ---
 To run image patching use:
 
-    ./img_patching data/a.png
+    ./img_patching.py data/a.png
 
-The approximated image result will be saved as `res_img.eps` and the root mean squared error as `rms.txt`
+The approximated image result will be saved as `res_img.eps` and the root mean squared error as `rms.txt` as `<rms_error>, <#of patches>`
 
 To run LSH and cover trees with sparse data use:
 
-    ./main.py -t data/netflix.mat -i 1000 -j 10 -n>o
+    ./main.py -t data/netflix.mat -i 1000 -j 10 -n -r 30>o
 
 To run LSH and cover trees with dense data use:
 
-    ./main.py -t data/mnist.data -i 1000 -j 10 -g>o
+    ./main.py -t data/mnist.data -i 1000 -j 10 -g -r 1800>o
 
 References
 ----

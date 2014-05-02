@@ -131,7 +131,7 @@ def init(fname):
         
         res_img = train_img.copy() 
         Q = np.vstack([X[patch_i] if patch_i != -1 else np.ones((1, X.shape[1])) for patch_i in patch_nghs])
-        nn = lsh.start(X, float(750))
+        nn = lsh.start(X, float(750), 1) #ideally run with t=0
 
         nghs = []
         for q in Q:
@@ -247,7 +247,7 @@ def init(fname):
 
         plt.savefig("res_img.eps", format="eps", dpi=1000)
         out.write("%f,%f\n" % (np.sqrt(np.mean((img - res_img)**2)), n))
-        out.close()
+        debug("completed with %d patches" % n)
    
 if __name__ == "__main__":
     init(sys.argv[1])

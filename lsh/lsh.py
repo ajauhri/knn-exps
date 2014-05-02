@@ -288,33 +288,33 @@ def seed():
     prng = np.random.RandomState()
     const.prng = prng
 
-def start(X, r):
+def start(X, r, t=1):
     # determine the optimal values for `k` `m` and `l`
     #opt_params = compute_opt(X, r) 
 
-    ''' opt params for image patching and netflix data''' 
-    '''
-    opt_params = alg_params()
-    opt_params.success_pr = const.success_pr
-    opt_params.w = const.w
-    opt_params.type_ht = const.HYBRID
-    opt_params.d = X.shape[1]
-    opt_params.r = r
-    opt_params.k = 20
-    opt_params.m = 35 
-    opt_params.l = 595 
-    '''
+    # opt params for image patching and netflix data
+    if t == 0:
+        opt_params = alg_params()
+        opt_params.success_pr = const.success_pr
+        opt_params.w = const.w
+        opt_params.type_ht = const.HYBRID
+        opt_params.d = X.shape[1]
+        opt_params.r = r
+        opt_params.k = 20
+        opt_params.m = 35 
+        opt_params.l = 595 
 
-    ''' opt params for dense dataset (mnist.data)''' 
-    opt_params = alg_params()
-    opt_params.success_pr = const.success_pr
-    opt_params.w = const.w
-    opt_params.type_ht = const.HYBRID
-    opt_params.d = X.shape[1]
-    opt_params.r = r
-    opt_params.k = 4
-    opt_params.m = 5
-    opt_params.l = 10
+    # opt params for dense dataset (mnist.data)
+    elif t == 1:
+        opt_params = alg_params()
+        opt_params.success_pr = const.success_pr
+        opt_params.w = const.w
+        opt_params.type_ht = const.HYBRID
+        opt_params.d = X.shape[1]
+        opt_params.r = r
+        opt_params.k = 4
+        opt_params.m = 5
+        opt_params.l = 10
 
     nn = init_lsh(opt_params, X.shape[0], X)
     '''    
