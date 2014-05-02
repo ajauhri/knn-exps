@@ -91,12 +91,13 @@ def create(X):
     debug('insertion done')
     return root    
 
-def dfs(elem, count=0):
+def dfs(elem):
     if not elem:
         return None
     else:
+        count = 0
         for key, value in elem.children.iteritems():
-            print '-'*count, key
+            count += len(value)
             for n in value:
-                dfs(n, count+1)
-
+                dfs(n)
+        print count, ',',

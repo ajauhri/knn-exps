@@ -50,14 +50,29 @@ def init():
     else:
         debug('data format not specified')
     
-    #root = cover_tree.create(X)
-    #nn = lsh.start(X, Q, options.r)
+    root = cover_tree.create(X)
+    debug('querying cover tree')
+    for i in range(Q.shape[0]):
+        nghs = cover_tree.knn(5, Q[i], root)
+        debug("NNs for query %d returned %d neighbours \n" % (i, len(nghs)))
+        for n in nghs:
+            debug("NN at dist=%f\n" % (n.dist))
+    
+    lsh.seed() 
+    nn = lsh.start(X, options.r) #default r=0.6
+    for i in range(Q.shape[0]):
+        nghs = lsh.get_ngh_struct(nn, Q[i])
+        debug("NNs for query %d returned %d neighbours \n" % (i, len(nghs)))
+        for n in nghs:
+            debug("NN at dist=%f\n" % n[1])
+
     #cover_tree.dfs(root)
     #collect_timings(X, Q)
-    do_profiling(X)
+    #do_profiling(X)
 
 def do_profiling(X):
     n_nghs = 5
+    print X.shape
     lsh.seed()
     out = open('dense_mem.txt', 'w')
     ct_size = 0
@@ -118,15 +133,6 @@ def collect_timings(X, Q):
         lsh_timings.append(lsh_tot_t/Q.shape[0])
         out.flush()
     out.close()
-    '''
-    plt.plot(sizes, ct_timings)
-    plt.plot(sizes, ct_timings,'y--o', markersize=8)
-    plt.plot(sizes, lsh_timings,'r--o', markersize=8)
-    plt.legend(['Cover Trees','E2LSH'])
-    plt.xlabel('Training set size', fontsize=18)
-    plt.ylabel('Avg. Query Time (secs)', fontsize=18)
-    plt.savefig('dense.eps', format='eps', dpi=1000)
-    '''
 
 if __name__ == "__main__":
     init()

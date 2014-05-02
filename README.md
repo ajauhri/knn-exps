@@ -10,6 +10,18 @@ Dependencies
 * [vlfeat](https://github.com/dougalsutherland/vlfeat-ctypes) 
 * [guppy](https://pypi.python.org/pypi/guppy/0.1.9) for memory profiling 
 
+Testing 
+---
+To run image patching use:
+    ./img_patching data/a.png
+The resultant image will be saved as `res_img.eps`
+
+To run LSH and cover trees with sparse data use:
+    ./main.py -t data/netflix.mat -i 1000 -j 10 -n>o
+
+To run LSH and cover trees with dense data use:
+    ./main.py -t data/mnist.data -i 1000 -j 10 -g>o
+
 References
 ----
 

@@ -88,16 +88,3 @@ class hybrid_chain_entry(C.Union):
                 ("point", hybrid_entry),
                 ("is_null", C.c_int)]
 
-'''
-class hybrid_chain_entry:
-    def __init__(self):
-        self.control_value = None
-        self.point = hybrid_entry()
-
-class hybrid_entry:
-    def __init__(self):
-        self.is_last_bucket = 1
-        self.bucket_length = const.n_bits_for_bucket_length
-        self.is_last_point = 1
-        self.point_index = const.n_bits_per_point_index
- '''
