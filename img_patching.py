@@ -247,6 +247,7 @@ def init(fname):
 
         plt.savefig("res_img.eps", format="eps", dpi=1000)
         out.write("%f,%f\n" % (np.sqrt(np.mean((img - res_img)**2)), n))
+        out.close()
    
 if __name__ == "__main__":
     init(sys.argv[1])
