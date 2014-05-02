@@ -33,7 +33,7 @@ To run LSH and cover trees with dense data use:
 
     ./main.py -t data/mnist.data -i 1000 -j 10 -g -r 1800
 
-The results are available in file `o` with distances to NNs and the number of NNs found.
+To get memory or timings results, please uncomment two functions `collect_timings` and `do_profiling` in `main.py`.
 
 References
 ----
