@@ -40,14 +40,14 @@ def init_lsh(params, n, X):
     computed_hashes_of_ulshs = np.zeros((nn.l, X.shape[0], 4))
     
     for i in xrange(X.shape[0]):
-        #sys.stdout.write("\r--->loading hashes for point %d out of %d" % (count + 1, X.shape[0]))
+        sys.stdout.write("\r--->loading hashes for point %d out of %d" % (count + 1, X.shape[0]))
         lsh_helper.construct_point(nn, uhash, X[i])
         count += 1
-        #sys.stdout.flush()
+        sys.stdout.flush()
         for j in xrange(nn.n_hf_tuples):
             for k in xrange(4):
                 computed_hashes_of_ulshs[j][i][k] = np.uint32(nn.computed_hashes_of_ulshs[j][k])
-    #print
+    print
      
 
     first_u_comp = 0
@@ -55,7 +55,7 @@ def init_lsh(params, n, X):
     
     # each <g_i> has a hash table <H_i>, and |<g_i>| = l
     for i in range(nn.l):
-        #sys.stdout.write("\r--->creating hybrid hash table %d out of %d" % (i + 1, nn.l))
+        sys.stdout.write("\r--->creating hybrid hash table %d out of %d" % (i + 1, nn.l))
         for j in range(X.shape[0]):
             lsh_helper.add_bucket_entry(uhash, 2, computed_hashes_of_ulshs[first_u_comp][j], computed_hashes_of_ulshs[second_u_comp][j], j)
         second_u_comp += 1
@@ -66,8 +66,8 @@ def init_lsh(params, n, X):
         uhash.ll_hash_table = [None for x in range(uhash.table_size)]
         uhash.points = 0
         uhash.buckets = 0
-        #sys.stdout.flush()
-    #print 
+        sys.stdout.flush()
+    print 
     return nn
 
 

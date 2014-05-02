@@ -60,7 +60,7 @@ def init():
     #print avg
 
     lsh.seed() 
-    nn = lsh.start(X, options.r)
+    nn = lsh.start(X, options.r, t)
     debug('querying lsh')
     for i in range(Q.shape[0]):
         nghs = lsh.get_ngh_struct(nn, Q[i])

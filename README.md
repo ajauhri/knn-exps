@@ -12,6 +12,13 @@ Dependencies
 
 Testing 
 ---
+
+After cloning the repository, download datasets using `wget`, 
+
+    wget https://dl.dropboxusercontent.com/u/10119973/15-853/a.png 
+    wget https://dl.dropboxusercontent.com/u/10119973/15-853/mnist.data 
+    wget https://dl.dropboxusercontent.com/u/10119973/15-853/netflix.mat 
+
 To run image patching use:
 
     ./img_patching.py data/a.png
@@ -20,11 +27,13 @@ The approximated image result will be saved as `res_img.eps` and the root mean s
 
 To run LSH and cover trees with sparse data use:
 
-    ./main.py -t data/netflix.mat -i 1000 -j 10 -n -r 30>o
+    ./main.py -t data/netflix.mat -i 1000 -j 10 -n -r 30
 
 To run LSH and cover trees with dense data use:
 
-    ./main.py -t data/mnist.data -i 1000 -j 10 -g -r 1800>o
+    ./main.py -t data/mnist.data -i 1000 -j 10 -g -r 1800
+
+The results are available in file `o` with distances to NNs and the number of NNs found.
 
 References
 ----
