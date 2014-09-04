@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3.4
 
 from optparse import OptionParser
 import numpy as np
@@ -28,7 +28,7 @@ def init():
         debug('running with netflix...')
         t = 0
         D = netflix(options.tfile)
-        print D.shape
+        debug(D.shape)
         X = D[:options.i]
         if not options.qfile:
             Q = D[:options.j]
@@ -74,7 +74,7 @@ def init():
 
 def do_profiling(X):
     n_nghs = 5
-    print X.shape
+    debug(X.shape)
     lsh.seed()
     out = open('dense_mem.txt', 'w')
     ct_size = 0

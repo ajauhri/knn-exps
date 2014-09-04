@@ -1,3 +1,3 @@
 def debug(s):
-    print '--->' + s
+    print('--->' + s)
 
